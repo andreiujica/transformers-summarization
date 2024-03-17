@@ -1,6 +1,6 @@
 from datasets import load_metric
 
 def compute_rouge_scores(predictions, references):
-    rouge = load_metric("rouge")
+    rouge = load_metric("rouge", trust_remote_code=True)
     scores = rouge.compute(predictions=predictions, references=references)
     return scores
