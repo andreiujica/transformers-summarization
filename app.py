@@ -3,7 +3,7 @@ from utils.data import get_dataset_sample
 from utils.model import load_model, generate_summary
 from utils.metrics import compute_rouge_scores
 
-# Pre-load a small set of samples for the demonstration and initial setup.
+# Pre-load a small set of samples for the demonstration and initial setup. 
 samples = get_dataset_sample(num_samples=5)
 
 def evaluate_model(model_name, input_text):
