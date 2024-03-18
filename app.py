@@ -26,7 +26,7 @@ def evaluate_model(model_name, input_text):
 iface = gr.Interface(
     fn=evaluate_model,
     inputs=[
-        gr.Dropdown(choices=['t5-small', 'bert-base-uncased', 'gpt2'], label="Select Transformer Model"),
+        gr.Dropdown(choices=["t5-small", "facebook/bart-large", "google/pegasus-large"], label="Select Transformer Model"),
         gr.Textbox(lines=20, placeholder="Enter patent text here or select an example...", label="Input Patent Description"),
     ],
     outputs=[
@@ -34,7 +34,7 @@ iface = gr.Interface(
         gr.Textbox(label="Reference Summary"),
         gr.JSON(label="ROUGE Scores"),
     ],
-    examples=[[model, sample['text']] for model in ['t5-small', 'bert-base-uncased', 'gpt2'] for sample in samples],
+    examples=[[model, sample['text']] for model in ["t5-small", "facebook/bart-large", "google/pegasus-large"] for sample in samples],
     title="Transformer Model Summarization Benchmark",
     description="This app benchmarks the out-of-the-box summarization capabilities of various transformer models using the BIGPATENT dataset."
 )
