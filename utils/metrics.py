@@ -14,7 +14,7 @@ def compute_metrics(predictions, references):
     meteor_scores = meteor.compute(predictions=predictions, references=references)
     
     # Simplify ROUGE, BLEU and METEOR scores for display
-    formatted_rouge_scores = round(rouge_scores["rougeL"].mid.fmeasure, 4)
+    formatted_rouge_scores = round(rouge_scores["rougeL"], 4)
     formatted_bleu_score = round(bleu_scores["score"], 4)
     formatted_meteor_score = round(meteor_scores["score"], 4)
     
