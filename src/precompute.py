@@ -37,6 +37,6 @@ def precompute_average_metrics():
             with open(file_path, "w") as outfile:
                 json.dump(metrics, outfile)
 
-            logging.info(f"Successfully saved metrics for {model_name['name']} at {file_path}")
+            logging.info(f"Successfully saved metrics for {model_name['name']} at {file_path}: {metrics}")
         except Exception as e:
             logging.error(f"Error computing or saving metrics for {model_name['name']}: {e}")

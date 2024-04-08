@@ -14,7 +14,7 @@ from src.evaluation import run_evaluation_suite
 DATA_CONFIG_FILE = 'config/dataset.yaml'
 
 with open(DATA_CONFIG_FILE, 'r') as file:
-    data_config = yaml.safe_load(file)['dataset']
+    data_config = yaml.safe_load(file)['dataset'][0]
 
 MODEL_CONFIG_FILE = 'config/models.yaml'
 
