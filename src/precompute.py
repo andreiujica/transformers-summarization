@@ -26,7 +26,7 @@ def precompute_average_metrics():
     @return:
     - None, but the metrics are saved to a file
     """
-    for model_name in models_config['models']:
+    for model_name in models_config:
         try:
             logging.info(f"Starting evaluation for model: {model_name['name']}")
             dataset = get_dataset(only_samples=False)
