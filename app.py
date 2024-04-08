@@ -1,58 +1,74 @@
+"""
+This is the main entrypoint for the Hugging Face Space. It contains the Gradio interface for the summarization benchmark.
+It is also the place where we will be precomputing the metrics for all models in the config file - if needed.
+"""
+
+import os
+import yaml
 import gradio as gr
-from utils.data import get_dataset_sample
-from utils.model import load_model, generate_summary, load_model_names
-from utils.metrics import measure_load_time, measure_inference_time, compute_metrics
+from src.precompute import precompute_average_metrics
+from src.inference import run_inference
+from src.dataset import get_dataset
+from src.evaluation import run_evaluation_suite
 
-# Pre-load a small set of samples for the demonstration and initial setup. 
-samples = get_dataset_sample(num_samples=5)
-model_names = load_model_names()
+DATA_CONFIG_FILE = 'config/dataset.yaml'
 
-def evaluate_model(model_name, sample_index, summarization_mode):
-    model, tokenizer, load_time = measure_load_time(model_name)
-    
-    input_text = samples[sample_index]['text']
-    reference_summary = samples[sample_index]['summary']
-    multi_shot_examples = [(sample['text'], sample['summary']) for sample in samples[:2]]
-    
-    if summarization_mode == 'Multi-Shot':
-        generated_summary, inference_time = measure_inference_time(model, tokenizer, input_text, examples=multi_shot_examples, mode='multi-shot')
-    else:
-        generated_summary, inference_time = measure_inference_time(model, tokenizer, input_text)
-    
-    # Compute quality metrics
-    rouge_scores, bleu_score, meteor_score = compute_metrics([generated_summary], [reference_summary])
-    
-    return {
-        "Input Text": input_text,
-        "Generated Summary": generated_summary,
-        "Reference Summary": reference_summary,
-        "ROUGE Scores": rouge_scores,
-        "BLEU Score": bleu_score,
-        "METEOR Score": meteor_score,
-        "Model Load Time (seconds)": load_time,
-        "Inference Time (seconds)": inference_time
-    }
+with open(DATA_CONFIG_FILE, 'r') as file:
+    data_config = yaml.safe_load(file)['dataset']
+
+MODEL_CONFIG_FILE = 'config/models.yaml'
+
+with open(MODEL_CONFIG_FILE, 'r') as file:
+    models_config = yaml.safe_load(file)['models']
+    models_array = [model['name'] for model in models_config]
+
+
+# Compute the average metrics for the entire dataset if the precomputed metrics do not exist.
+if not os.path.exists("./precomputed_metrics"):
+    os.makedirs("./precomputed_metrics")
+    precompute_average_metrics()
+
+def run_demo(model_name, sample_idx):
+    """
+    Run the summarization benchmark for a single model and sample index.
+
+    Params:
+    - model_name: The name of the model to use
+    - sample_idx: The index of the sample to use
+
+    @return:
+    - input_text: The input patent description
+    - generated_summary: The generated summary
+    - reference_summary: The reference summary
+    - evaluation_scores: The evaluation JSON scores - ROUGE, BLEU, and METEOR
+    """
+
+    dataset = get_dataset(only_samples=True)
+    sample = dataset[sample_idx]
+
+    input_text = sample[data_config['input_column']]
+    reference_summary = sample[data_config['summary_column']]
+
+    generated_summary = run_inference(model_name, input_text)
+    evaluation_scores = run_evaluation_suite(model_name, [sample])
+
+    return input_text, generated_summary, reference_summary, evaluation_scores
 
 # Define the Gradio interface.
 iface = gr.Interface(
-    fn=evaluate_model,
+    fn=run_demo,
     inputs=[
-        gr.Dropdown(choices=model_names, label="Select Transformer Model"),
-        gr.Dropdown(choices=list(range(len(samples))), label="Sample Index"),
-        gr.Radio(choices=["One-Shot", "Multi-Shot"], label="Summarization Mode")
+        gr.Dropdown(choices=models_array, label="Select Transformer Model"),
+        gr.Dropdown(choices=list(range(data_config["sample_size"])), label="Sample Index"),
     ],
     outputs=[
         gr.Textbox(label="Input Patent Description"),
         gr.Textbox(label="Generated Summary"),
         gr.Textbox(label="Reference Summary"),
-        gr.JSON(label="ROUGE Scores"),
-        gr.Number(label="BLEU Score"),
-        gr.Number(label="METEOR Score"),
-        gr.Number(label="Model Load Time (seconds)"),
-        gr.Number(label="Inference Time (seconds)")
+        gr.JSON(label="Evaluation Scores"),
     ],
     title="Transformer Model Summarization Benchmark",
-    description="""This app benchmarks the out-of-the-box summarization capabilities of various transformer models using the BIGPATENT dataset, including one-shot and multi-shot summarization modes. Select a model, sample index, and summarization mode to view its input, summaries, and performance metrics."""
+    description="""This app benchmarks the out-of-the-box summarization capabilities of various transformer models using the BIGPATENT dataset. Select a model, sample index, and summarization mode to view its input, summaries, and performance metrics."""
 )
 
 if __name__ == "__main__":
