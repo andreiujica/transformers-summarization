@@ -10,7 +10,7 @@ from evaluate import evaluator, combine
 DATA_CONFIG_FILE = 'config/dataset.yaml'
 
 with open(DATA_CONFIG_FILE, 'r') as file:
-    data_config = yaml.safe_load(file)
+    data_config = yaml.safe_load(file)['dataset']
 
 def run_evaluation_suite(model_name, dataset):
     """
