@@ -1,0 +1,19 @@
+models:
+  - name: facebook/bart-large
+    description: "BART large model"
+  - name: facebook/bart-base
+    description: "BART base model"
+  - name: google/pegasus-large
+    description: "PEGASUS large"
+  - name: t5-large
+    description: "T5 large model"
+  - name: t5-small
+    description: "T5 small model"
+  - name: allenai/led-base-16384
+    description: "LED base model "
+  - name: sshleifer/distilbart-cnn-12-6
+    description: "Distilled BART model"
+  - name: google/bigbird-pegasus-large-arxiv
+    description: "BigBird-Pegasus "
+  - name: microsoft/prophetnet-large-uncased
+    description: "ProphetNet large"
