@@ -30,6 +30,7 @@ def precompute_average_metrics():
         try:
             logging.info(f"Starting evaluation for model: {model_name['name']}")
             dataset = get_dataset(only_samples=False)
+            logging.info(f"Loaded dataset for {model_name['name']}")
             metrics = run_evaluation_suite(model_name['name'], dataset)
 
             file_path = f"../precomputed_metrics/{model_name['name']}_metrics.json"
