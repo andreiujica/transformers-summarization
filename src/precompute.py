@@ -9,7 +9,6 @@ import logging
 from src.evaluation import run_evaluation_suite
 from src.dataset import get_dataset
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 MODELS_CONFIG_FILE = 'config/models.yaml'
 

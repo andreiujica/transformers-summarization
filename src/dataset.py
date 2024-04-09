@@ -5,7 +5,9 @@ It loads the config from the yaml file and it provides functions to:
 """
 
 import yaml
+import logging
 from datasets import load_dataset
+
 
 DATA_CONFIG_FILE = 'config/dataset.yaml'
 
@@ -20,7 +22,12 @@ def get_dataset(only_samples=True):
     @return:
     - dataset: The dataset object
     """
-    split = f'{data_config["split"]}[:{data_config["sample_size"]}]' if only_samples else data_config["split"]
-    dataset = load_dataset(data_config['name'], data_config['category'], split=split, trust_remote_code=True, num_proc=8)
+    try:
+        logging.info(f"Loading dataset {data_config['name']} with from {data_config} config")
+        split = f'{data_config["split"]}[:{data_config["sample_size"]}]' if only_samples else data_config["split"]
+        dataset = load_dataset(data_config['name'], data_config['category'], split=split, trust_remote_code=True, num_proc=8)
+    except Exception as e:
+        logging.error(f"Error loading dataset: {e}")
+        dataset = None
 
     return dataset
