@@ -14,6 +14,8 @@ from huggingface_hub import Repository, HfFolder
 MODELS_CONFIG_FILE = 'config/models.yaml'
 HF_TOKEN = os.getenv('HF_TOKEN')
 
+HfFolder.save_token(HF_TOKEN)
+
 with open(MODELS_CONFIG_FILE, 'r') as file:
     models_config = yaml.safe_load(file)['models']
 
