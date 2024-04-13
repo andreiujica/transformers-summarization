@@ -3,7 +3,7 @@ This is the main entrypoint for the Hugging Face Space. It contains the Gradio i
 It is also the place where we will be precomputing the metrics for all models in the config file - if needed.
 """
 
-import os
+import logging
 import yaml
 import gradio as gr
 from datasets import Dataset
@@ -45,6 +45,7 @@ def run_demo(model_name, sample_idx):
 
     dataset = get_dataset(only_samples=True)
     sample = dataset[sample_idx]
+    logging.info(f"Running demo for sample: {sample}")
 
     input_text = sample[data_config['input_column']]
     reference_summary = sample[data_config['summary_column']]

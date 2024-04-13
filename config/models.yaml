@@ -2,7 +2,6 @@ models:
   - name: facebook/bart-large
   - name: facebook/bart-base
   - name: google/pegasus-large
-  - name: t5-large
   - name: t5-small
   - name: allenai/led-base-16384
   - name: sshleifer/distilbart-cnn-12-6
