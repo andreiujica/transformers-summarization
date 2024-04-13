@@ -8,7 +8,6 @@ import yaml
 import gradio as gr
 from datasets import Dataset
 from src.precompute import precompute_average_metrics
-from src.inference import run_inference
 from src.dataset import get_dataset
 from src.evaluation import run_evaluation_suite
 
@@ -35,16 +34,12 @@ def run_demo(model_name):
     - model_name: The name of the model to use
 
     @return:
-    - input_text: The input patent description
-    - generated_summary: The generated summary
-    - reference_summary: The reference summary
     - evaluation_scores: The evaluation JSON scores - ROUGE, BLEU, and METEOR
     # TODO: Fix demo dataset not working
     """
 
     dataset = get_dataset(only_samples=True)
-
-    evaluation_scores = run_evaluation_suite(model_name, Dataset.from_dict(dataset))
+    evaluation_scores = run_evaluation_suite(model_name, dataset)
 
     return evaluation_scores
 
@@ -58,7 +53,7 @@ iface = gr.Interface(
         gr.JSON(label="Evaluation Scores"),
     ],
     title="Transformer Model Summarization Benchmark",
-    description="""This app benchmarks the out-of-the-box summarization capabilities of various transformer models using the BIGPATENT dataset. Select a model, sample index, and summarization mode to view its input, summaries, and performance metrics."""
+    description="""This app benchmarks the out-of-the-box summarization capabilities of various transformer models using the BIGPATENT dataset. Select a model and performance metrics."""
 )
 
 if __name__ == "__main__":
