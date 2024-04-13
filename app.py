@@ -6,6 +6,7 @@ It is also the place where we will be precomputing the metrics for all models in
 import os
 import yaml
 import gradio as gr
+from datasets import Dataset
 from src.precompute import precompute_average_metrics
 from src.inference import run_inference
 from src.dataset import get_dataset
@@ -50,7 +51,7 @@ def run_demo(model_name, sample_idx):
     reference_summary = sample[data_config['summary_column']]
 
     generated_summary = run_inference(model_name, input_text)
-    evaluation_scores = run_evaluation_suite(model_name, [sample])
+    evaluation_scores = run_evaluation_suite(model_name, Dataset.from_dict(sample))
 
     return input_text, generated_summary, reference_summary, evaluation_scores
 
