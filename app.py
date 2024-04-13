@@ -40,6 +40,7 @@ def run_demo(model_name, sample_idx):
     - generated_summary: The generated summary
     - reference_summary: The reference summary
     - evaluation_scores: The evaluation JSON scores - ROUGE, BLEU, and METEOR
+    # TODO: Fix demo dataset not working
     """
 
     dataset = get_dataset(only_samples=True)
