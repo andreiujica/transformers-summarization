@@ -35,7 +35,7 @@ def run_demo(model_name):
 
     @return:
     - evaluation_scores: The evaluation JSON scores - ROUGE, BLEU, and METEOR
-    # TODO: Fix demo dataset not working
+    # TODO: 4. Add the JSON text to this page
     """
 
     dataset = get_dataset(only_samples=True)
@@ -53,7 +53,7 @@ iface = gr.Interface(
         gr.JSON(label="Evaluation Scores"),
     ],
     title="Transformer Model Summarization Benchmark",
-    description="""This app benchmarks the out-of-the-box summarization capabilities of various transformer models using the BIGPATENT dataset. Select a model and performance metrics."""
+    description="""This app benchmarks the out-of-the-box summarization capabilities of various transformer models using the BIGPATENT dataset. Select a model and see the performance metrics. Beware it will take around 5 minutes for the metrics to be computed."""
 )
 
 if __name__ == "__main__":
