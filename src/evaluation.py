@@ -20,8 +20,10 @@ def run_evaluation_suite(model_name, dataset):
     Params:
     - model_name: The name of the model to evaluate
     - dataset: The dataset object
+    
+    #TODO: make this run few show evaluation as well using a custom pipeline
     """
-
+    
     summarization_evaluator = evaluator('summarization')
 
     return summarization_evaluator.compute(

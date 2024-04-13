@@ -30,13 +30,13 @@ def precompute_average_metrics():
 
     # We need to use the Hugging Face Hub to save the metrics as a file
     # as the Space storage resets after every build
-    repo_path = "../" 
+    repo_path = "./" 
     repo = Repository(local_dir=repo_path, use_auth_token=True)
 
     for model_name in models_config:
         try:
             logging.info(f"Starting evaluation for model: {model_name['name']}")
-            dataset = get_dataset(only_samples=True)
+            dataset = get_dataset(only_samples=True) # TODO: Change to False after POC works
             metrics = run_evaluation_suite(model_name['name'], dataset)
 
             # Create a file path for the metrics within the root directory
