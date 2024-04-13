@@ -5,7 +5,7 @@ It provides functions to:
 """
 
 import yaml
-from evaluate import load_metric
+from evaluate import load
 from transformers import pipeline
 
 DATA_CONFIG_FILE = 'config/dataset.yaml'
@@ -47,9 +47,9 @@ def run_evaluation_suite(model_name, dataset):
     summarizer = pipeline("summarization", model=model_name)
 
     # Load metrics
-    rouge = load_metric("rouge")
-    sacrebleu = load_metric("sacrebleu")
-    meteor = load_metric("meteor")
+    rouge = load("rouge")
+    sacrebleu = load("sacrebleu")
+    meteor = load("meteor")
 
     # Prepare few-shot examples by taking the first two entries from the dataset
     few_shot_examples = ["Text: " + item[data_config['input_column']] + " Summary: " + item[data_config['summary_column']]
