@@ -25,9 +25,7 @@ with open(MODEL_CONFIG_FILE, 'r') as file:
 
 
 # Compute the average metrics for the entire dataset if the precomputed metrics do not exist.
-metrics_dir = "./precomputed_metrics"
-if not os.path.exists(metrics_dir) or len(os.listdir(metrics_dir)) <= 1:
-    precompute_average_metrics()
+precompute_average_metrics()
 
 def run_demo(model_name, sample_idx):
     """
