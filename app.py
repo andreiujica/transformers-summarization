@@ -50,8 +50,14 @@ def run_demo(model_name, sample_idx):
     input_text = sample[data_config['input_column']]
     reference_summary = sample[data_config['summary_column']]
 
+    # Wrap the data into lists to satisfy the dataset requirements
+    sample_dataset = {
+        'input_column': [input_text],
+        'summary_column': [reference_summary]
+    }
+
     generated_summary = run_inference(model_name, input_text)
-    evaluation_scores = run_evaluation_suite(model_name, Dataset.from_dict(sample))
+    evaluation_scores = run_evaluation_suite(model_name, Dataset.from_dict(sample_dataset))
 
     return input_text, generated_summary, reference_summary, evaluation_scores
 
