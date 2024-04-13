@@ -12,7 +12,7 @@ DATA_CONFIG_FILE = 'config/dataset.yaml'
 with open(DATA_CONFIG_FILE, 'r') as file:
     data_config = yaml.safe_load(file)['dataset']
 
-def run_evaluation_suite(model_name):
+def run_evaluation_suite(model_name, dataset):
     """
     Runs the summarizationEvaluator to compute the ROUGE, BLEU, and METEOR scores
     for a single model on an entire dataset.
@@ -26,9 +26,7 @@ def run_evaluation_suite(model_name):
 
     return summarization_evaluator.compute(
         model_or_pipeline=model_name,
-        data=data_config['name'],
-        subset=data_config['category'],
-        split=data_config['split'],
+        data=dataset,
         metric=combine(['rouge', 'sacrebleu', 'meteor']),
         input_column=data_config['input_column'],
         label_column=data_config['summary_column']
