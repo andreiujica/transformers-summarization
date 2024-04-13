@@ -27,13 +27,12 @@ with open(MODEL_CONFIG_FILE, 'r') as file:
 # Compute the average metrics for the entire dataset if the precomputed metrics do not exist.
 precompute_average_metrics()
 
-def run_demo(model_name, sample_idx):
+def run_demo(model_name):
     """
-    Run the summarization benchmark for a single model and sample index.
+    Run the summarization benchmark for a single model and five samples.
 
     Params:
     - model_name: The name of the model to use
-    - sample_idx: The index of the sample to use
 
     @return:
     - input_text: The input patent description
@@ -44,34 +43,18 @@ def run_demo(model_name, sample_idx):
     """
 
     dataset = get_dataset(only_samples=True)
-    sample = dataset[sample_idx]
-    logging.info(f"Running demo for sample: {sample}")
 
-    input_text = sample[data_config['input_column']]
-    reference_summary = sample[data_config['summary_column']]
+    evaluation_scores = run_evaluation_suite(model_name, Dataset.from_dict(dataset))
 
-    # Wrap the data into lists to satisfy the dataset requirements
-    sample_dataset = {
-        'input_column': [input_text],
-        'summary_column': [reference_summary]
-    }
-
-    generated_summary = run_inference(model_name, input_text)
-    evaluation_scores = run_evaluation_suite(model_name, Dataset.from_dict(sample_dataset))
-
-    return input_text, generated_summary, reference_summary, evaluation_scores
+    return evaluation_scores
 
 # Define the Gradio interface.
 iface = gr.Interface(
     fn=run_demo,
     inputs=[
         gr.Dropdown(choices=models_array, label="Select Transformer Model"),
-        gr.Dropdown(choices=list(range(data_config["sample_size"])), label="Sample Index"),
     ],
     outputs=[
-        gr.Textbox(label="Input Patent Description"),
-        gr.Textbox(label="Generated Summary"),
-        gr.Textbox(label="Reference Summary"),
         gr.JSON(label="Evaluation Scores"),
     ],
     title="Transformer Model Summarization Benchmark",
