@@ -30,7 +30,7 @@ def precompute_average_metrics():
     - None
 
     @return:
-    - None, but the metrics are saved to a file
+    - None, but the metrics are saved to a file 
     """
     for model_name in models_config:
         try:
