@@ -25,7 +25,7 @@ def get_dataset(only_samples=True):
     try:
         logging.info(f"Loading dataset {data_config['name']} with from {data_config} config")
         split = f'{data_config["split"]}[:{data_config["sample_size"]}]' if only_samples else data_config["split"]
-        dataset = load_dataset(data_config['name'], data_config['category'], split=split, trust_remote_code=True, num_proc=8)
+        dataset = load_dataset(data_config['name'], codes=[data_config['category']], split=split, trust_remote_code=True, num_proc=8)
     except Exception as e:
         logging.error(f"Error loading dataset: {e}")
         dataset = None

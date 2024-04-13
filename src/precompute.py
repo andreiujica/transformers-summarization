@@ -33,13 +33,19 @@ def precompute_average_metrics():
     - None, but the metrics are saved to a file 
     """
     for model_name in models_config:
+        file_path = f"precomputed_metrics/{model_name['name']}_metrics.json"
+
+        # Check if metrics file already exists
+        if os.path.exists(file_path):
+            logging.info(f"Metrics already exist for {model_name['name']}. Skipping...")
+            continue
+        
         try:
             logging.info(f"Starting evaluation for model: {model_name['name']}")
             dataset = get_dataset(only_samples=True) # TODO: Change to False after POC works
             metrics = run_evaluation_suite(model_name['name'], dataset)
 
             # Create a file path for the metrics within the root directory
-            file_path = f"precomputed_metrics/{model_name['name']}_metrics.json"
             os.makedirs(os.path.dirname(file_path), exist_ok=True)
 
             with open(file_path, "w") as outfile:
