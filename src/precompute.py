@@ -31,8 +31,9 @@ def precompute_average_metrics():
 
     @return:
     - None, but the metrics are saved to a file 
-    # TODO: 3. Run these on the entire dataset
     """
+    dataset = get_dataset(only_samples=False)
+    
     for model_name in models_config:
         file_path = f"precomputed_metrics/{model_name['name']}_metrics.json"
 
@@ -43,7 +44,6 @@ def precompute_average_metrics():
         
         try:
             logging.info(f"Starting evaluation for model: {model_name['name']}")
-            dataset = get_dataset(only_samples=True)
             metrics = run_evaluation_suite(model_name['name'], dataset)
 
             # Create a file path for the metrics within the root directory
