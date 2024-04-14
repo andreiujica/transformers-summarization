@@ -1,7 +1,7 @@
 dataset:
   name: 'big_patent'
   category: 'g'
-  sample_size: 5
+  sample_size: 1000
   split: 'test'
   input_column: 'description'
   summary_column: 'abstract'

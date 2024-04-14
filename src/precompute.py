@@ -32,8 +32,8 @@ def precompute_average_metrics():
     @return:
     - None, but the metrics are saved to a file 
     """
-    dataset = get_dataset(only_samples=False)
-    
+    dataset = get_dataset(only_samples=True)
+
     for model_name in models_config:
         file_path = f"precomputed_metrics/{model_name['name']}_metrics.json"
 
