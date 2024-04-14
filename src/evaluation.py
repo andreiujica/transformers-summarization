@@ -30,6 +30,5 @@ def run_evaluation_suite(model_name, dataset):
         metric=combine(['rouge', 'sacrebleu', 'meteor']),
         input_column=data_config['input_column'],
         label_column=data_config['summary_column'],
-        strategy='bootstrap',
     )
 
