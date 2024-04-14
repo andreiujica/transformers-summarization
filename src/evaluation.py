@@ -78,12 +78,9 @@ def run_evaluation_suite(model_name, dataset):
         summaries = [summarizer(chunk)[0]['summary_text'] for chunk in chunks]
         combined_summary = " ".join(summaries)
 
-        logging.info(f"Input: {input_text}")
-        logging.info(f"Summary: {combined_summary}")
-
         zero_shot_metrics.append({
             "rouge": rouge.compute(predictions=[combined_summary], references=[example[data_config['summary_column']]]),
-            "bleu": sacrebleu.compute(predictions=[combined_summary], references=[example[data_config['summary_column']]]),
+            "bleu": sacrebleu.compute(predictions=[combined_summary], references=[example[data_config['summary_column']]])["score"],
             "meteor": meteor.compute(predictions=[combined_summary], references=[example[data_config['summary_column']]])
         })
 
@@ -94,12 +91,9 @@ def run_evaluation_suite(model_name, dataset):
         summaries = [summarizer(chunk)[0]['summary_text'] for chunk in chunks]
         combined_summary = " ".join(summaries)
 
-        logging.info(f"Input: {input_text}")
-        logging.info(f"Summary: {combined_summary}")
-
         few_shot_metrics.append({
             "rouge": rouge.compute(predictions=[combined_summary], references=[example[data_config['summary_column']]]),
-            "bleu": sacrebleu.compute(predictions=[combined_summary], references=[example[data_config['summary_column']]]),
+            "bleu": sacrebleu.compute(predictions=[combined_summary], references=[example[data_config['summary_column']]])["score"],
             "meteor": meteor.compute(predictions=[combined_summary], references=[example[data_config['summary_column']]])
         })
 
