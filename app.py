@@ -22,6 +22,7 @@ with open(MODEL_CONFIG_FILE, 'r') as file:
     models_config = yaml.safe_load(file)['models']
     models_array = [model['name'] for model in models_config]
 
+dataset = get_dataset(only_samples=True)
 
 # Compute the average metrics for the entire dataset if the precomputed metrics do not exist.
 precompute_average_metrics()
@@ -38,10 +39,7 @@ def run_demo(model_name):
     # TODO: 4. Add the JSON text to this page
     """
 
-    dataset = get_dataset(only_samples=True)
-    evaluation_scores = run_evaluation_suite(model_name, dataset)
-
-    return evaluation_scores
+    return run_evaluation_suite(model_name, dataset)
 
 # Define the Gradio interface.
 iface = gr.Interface(
