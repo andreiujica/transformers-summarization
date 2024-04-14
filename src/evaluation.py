@@ -6,9 +6,11 @@ It provides functions to:
 
 import yaml
 from evaluate import load
-from transformers import pipeline
+from transformers import pipeline, AutoTokenizer
+import logging
 
 DATA_CONFIG_FILE = 'config/dataset.yaml'
+CONTEXT_LENGTH = 512
 
 with open(DATA_CONFIG_FILE, 'r') as file:
     data_config = yaml.safe_load(file)['dataset']
@@ -31,6 +33,17 @@ def compute_average_metrics(metrics):
 
     return average_scores
 
+def split_into_chunks(model_name, text):
+    """
+    Splits the text into manageable chunks with overlap.
+    """
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    tokenized_text = tokenizer.encode(text)
+    length = len(tokenized_text)
+    size = CONTEXT_LENGTH - 50 
+    chunks = [tokenizer.decode(tokenized_text[i:i + size]) for i in range(0, length, size)]
+    return chunks
+
 def run_evaluation_suite(model_name, dataset):
     """
     Runs the summarizationEvaluator to compute the ROUGE, BLEU, and METEOR scores
@@ -41,6 +54,7 @@ def run_evaluation_suite(model_name, dataset):
     - dataset: The dataset object
     
     #TODO: 2. Make this run few shot evaluation as well using a custom pipeline
+    #TODO: 2.1. Fix the context length thing for t5
     """
     
     # Load the summarization model
@@ -59,21 +73,34 @@ def run_evaluation_suite(model_name, dataset):
 
     # Evaluate using zero-shot
     for example in dataset:
-        generated_summary = summarizer(example[data_config['input_column']])[0]['summary_text']
+        input_text = example[data_config['input_column']]
+        chunks = split_into_chunks(model_name, input_text)
+        summaries = [summarizer(chunk)[0]['summary_text'] for chunk in chunks]
+        combined_summary = " ".join(summaries)
+
+        logging.info(f"Input: {input_text}")
+        logging.info(f"Summary: {combined_summary}")
+
         zero_shot_metrics.append({
-            "rouge": rouge.compute(predictions=[generated_summary], references=[example[data_config['summary_column']]]),
-            "bleu": sacrebleu.compute(predictions=[generated_summary], references=[example[data_config['summary_column']]]),
-            "meteor": meteor.compute(predictions=[generated_summary], references=[example[data_config['summary_column']]])
+            "rouge": rouge.compute(predictions=[combined_summary], references=[example[data_config['summary_column']]]),
+            "bleu": sacrebleu.compute(predictions=[combined_summary], references=[example[data_config['summary_column']]]),
+            "meteor": meteor.compute(predictions=[combined_summary], references=[example[data_config['summary_column']]])
         })
 
     # Evaluate using few-shot
     for example in dataset:
         input_text = " ".join(few_shot_examples + [example[data_config['input_column']]])
-        generated_summary = summarizer(input_text)[0]['summary_text']
+        chunks = split_into_chunks(model_name, input_text)
+        summaries = [summarizer(chunk)[0]['summary_text'] for chunk in chunks]
+        combined_summary = " ".join(summaries)
+
+        logging.info(f"Input: {input_text}")
+        logging.info(f"Summary: {combined_summary}")
+
         few_shot_metrics.append({
-            "rouge": rouge.compute(predictions=[generated_summary], references=[example[data_config['summary_column']]]),
-            "bleu": sacrebleu.compute(predictions=[generated_summary], references=[example[data_config['summary_column']]]),
-            "meteor": meteor.compute(predictions=[generated_summary], references=[example[data_config['summary_column']]])
+            "rouge": rouge.compute(predictions=[combined_summary], references=[example[data_config['summary_column']]]),
+            "bleu": sacrebleu.compute(predictions=[combined_summary], references=[example[data_config['summary_column']]]),
+            "meteor": meteor.compute(predictions=[combined_summary], references=[example[data_config['summary_column']]])
         })
 
     # Calculate average scores across all examples
