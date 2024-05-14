@@ -12,7 +12,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-TOTAL_SAMPLES = 10
+TOTAL_SAMPLES = 200
 
 DATA_CONFIG_FILE = 'config/dataset.yaml'
 
