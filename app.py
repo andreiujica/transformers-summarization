@@ -62,14 +62,17 @@ def evaluate_model(model_name):
     rouge_scores = rouge.compute(predictions=predictions, references=references)
     bleu_scores = bleu.compute(predictions=predictions, references=references)
     meteor_scores = meteor.compute(predictions=predictions, references=references)
-
-    return {
+    results = {
         'ROUGE': rouge_scores,
         'BLEU': bleu_scores,
         'METEOR': meteor_scores,
         'Example Reference': example_reference,
         'Example Prediction': example_prediction
     }
+
+    logger.info(f"Results for {model_name}: {results}")
+
+    return results
 
 
 # Define the Gradio interface.

@@ -1,0 +1,91 @@
+---------------------------------------------------------------------
+Model Name: "t5-base"
+Max Input Length: 512
+---------------------------------------------------------------------
+Results:
+{
+  "ROUGE": {
+    "rouge1": 0.08969616268147307,
+    "rouge2": 0.021190572802688677,
+    "rougeL": 0.07373974819461751,
+    "rougeLsum": 0.07385143729741624
+  },
+  "BLEU": {
+    "score": 0.0038078926479501642,
+    "counts": [
+      1228,
+      250,
+      92,
+      40
+    ],
+    "totals": [
+      2830,
+      2630,
+      2430,
+      2230
+    ],
+    "precisions": [
+      43.3922261484099,
+      9.505703422053232,
+      3.786008230452675,
+      1.7937219730941705
+    ],
+    "bp": 0.0005234214038110971,
+    "sys_len": 2830,
+    "ref_len": 24211
+  },
+  "METEOR": {
+    "meteor": 0.04002261935021379
+  },
+  "Example Reference": "Electro-optic media are disclosed containing a plurality of types of electro-optic media within a single layer. The media provide blinking displays, displays in which images appear transiently and displays having a wider color gamut than conventional electro-optic displays",
+  "Example Prediction": "the first and second optical characteristics of the display substantially the same and the second and third optical"
+}
+---------------------------------------------------------------------
+Model Name: "facebook/bart-base"
+Max Input Length: 1024
+---------------------------------------------------------------------
+Results:
+{
+  "ROUGE": {
+    "rouge1": 0.044241039987828655,
+    "rouge2": 0.008258867845430331,
+    "rougeL": 0.03960744215250005,
+    "rougeLsum": 0.03973739699730727
+  },
+  "BLEU": {
+    "score": 0.00017474903254044858,
+    "counts": [
+      324,
+      34,
+      3,
+      0
+    ],
+    "totals": [
+      2721,
+      2521,
+      2321,
+      2121
+    ],
+    "precisions": [
+      11.907386990077178,
+      1.3486711622372074,
+      0.12925463162429987,
+      0.023573785950023574
+    ],
+    "bp": 0.0003715483034438599,
+    "sys_len": 2721,
+    "ref_len": 24211
+  },
+  "METEOR": {
+    "meteor": 0.01716868399677229
+  },
+  "Example Reference": "Electro-optic media are disclosed containing a plurality of types of electro-optic media within a single layer. The media provide blinking displays, displays in which images appear transiently and displays having a wider color gamut than conventional electro-optic displays",
+  "Example Prediction": "REFERENCE TO RELATED APPLICATIONS    [0001]"
+}
+---------------------------------------------------------------------
+Model Name: "google/pegasus-large"
+Max Input Length: 1024
+---------------------------------------------------------------------
+Results:
+
+---------------------------------------------------------------------
