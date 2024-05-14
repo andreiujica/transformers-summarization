@@ -58,6 +58,8 @@ def summarize_and_score(ids, mask, model, tokenizer, **kwargs):
         "attention_mask": attention_mask,
         "return_dict_in_generate": True,
         "num_beams": 4,
+        "no_repeat_ngram_size": 2,
+        "early_stopping": True,
         **kwargs
     }
 
