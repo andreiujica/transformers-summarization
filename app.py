@@ -5,7 +5,7 @@ It is also the place where we will be precomputing the metrics for all models in
 import yaml
 import gradio as gr
 from datasets import load_dataset
-from evaluate import load_metric
+from evaluate import load
 from tqdm.auto import tqdm
 
 from src.summarize import load_model_and_tokenizer, summarize_via_tokenbatches
@@ -29,9 +29,9 @@ def evaluate_model(model_name):
     model, tokenizer = load_model_and_tokenizer(model_name)
     dataset = load_dataset(data_config['name'], data_config['category'], split='test', trust_remote_code=True, streaming=True)
 
-    rouge = load_metric('rouge')
-    bleu = load_metric('sacrebleu')
-    meteor = load_metric('meteor')
+    rouge = load('rouge')
+    bleu = load('sacrebleu')
+    meteor = load('meteor')
 
     predictions, references = [], []
     for item in tqdm(dataset, desc=f"Evaluating {model_name}"):
