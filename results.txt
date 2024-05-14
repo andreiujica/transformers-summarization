@@ -125,7 +125,7 @@ Results:
   "Example Prediction": "[0049] Thus, in general, the colors available from an electro-optic medium are those falling along a single line when plotted in a conventional color space, for example the standard ICE L*a*b colorspace, and the same range of colors will be seen when switching in either direction, i.e., from red to green or from green to red."
 }
 ---------------------------------------------------------------------
-Model Name: "google/longt5-local-base"
+Model Name: "pszemraj/long-t5-tglobal-base-sci-simplify"
 Max Input Length: 16384
 ---------------------------------------------------------------------
 Results:
