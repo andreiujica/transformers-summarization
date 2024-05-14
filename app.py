@@ -7,8 +7,10 @@ import gradio as gr
 from datasets import load_dataset
 from evaluate import load
 from tqdm.auto import tqdm
-
 from src.summarize import load_model_and_tokenizer, summarize_via_tokenbatches
+import logging
+
+logger = logging.getLogger(__name__)
 
 DATA_CONFIG_FILE = 'config/dataset.yaml'
 
@@ -22,13 +24,16 @@ with open(MODEL_CONFIG_FILE, 'r') as file:
 
 # Evaluate a single model
 def evaluate_model(model_name):
-    for model in models_config['models']:
+    for model in models_config:
         if model['name'] == model_name:
             model_info = model
 
     model, tokenizer = load_model_and_tokenizer(model_name)
-    dataset = load_dataset(data_config['name'], data_config['category'], split='test', trust_remote_code=True, streaming=True)
+    logger.info(f"Loaded model {model_name}")
 
+    dataset = load_dataset(data_config['name'], data_config['category'], split='test', trust_remote_code=True, streaming=True)
+    logger.info(f"Loaded dataset {data_config['name']}")
+    
     rouge = load('rouge')
     bleu = load('sacrebleu')
     meteor = load('meteor')
