@@ -131,8 +131,7 @@ def summarize_via_tokenbatches(
         chunk_summaries = []
         for ids, mask in zip(in_id_arr, att_arr):
             summary = summarize_and_score(ids, mask, model, tokenizer, **kwargs)
-            logger.info(f"Summary: {summary}")
-            chunk_summaries.append(summary)
+            chunk_summaries.append(summary[0])
             pbar.update(1)
         
         # Concatenate chunk summaries and summarize again
