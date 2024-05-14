@@ -49,7 +49,7 @@ def evaluate_model(model_name):
         input_text = item[data_config['input_column']]
         reference = item[data_config['summary_column']]
         summary = summarize_via_tokenbatches(input_text, model, tokenizer, batch_length=model_info['max_input_length'])
-        predictions.append(summary)
+        predictions.append(summary[0])
         references.append(reference)
         count += 1
 
