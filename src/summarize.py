@@ -14,12 +14,7 @@ def load_model_and_tokenizer(model_name: str) -> tuple:
     logger = logging.getLogger(__name__)
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    config = AutoConfig.from_pretrained(model_name)
-
-    if isinstance(config, LongformerConfig):
-        model = AutoModel.from_pretrained(model_name).to(device)
-    else:
-        model = AutoModelForSeq2SeqLM.from_pretrained(model_name).to(device)
+    model = AutoModelForSeq2SeqLM.from_pretrained(model_name).to(device)
     model = model.eval()
 
     tokenizer = AutoTokenizer.from_pretrained(model_name)

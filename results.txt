@@ -87,5 +87,47 @@ Model Name: "google/pegasus-large"
 Max Input Length: 1024
 ---------------------------------------------------------------------
 Results:
+{
+  "ROUGE": {
+    "rouge1": 0.324517283601085,
+    "rouge2": 0.08827655411232324,
+    "rougeL": 0.1903713277648869,
+    "rougeLsum": 0.18988370393327691
+  },
+  "BLEU": {
+    "score": 6.396887169915119,
+    "counts": [
+      705,
+      212,
+      81,
+      41
+    ],
+    "totals": [
+      1730,
+      1710,
+      1690,
+      1670
+    ],
+    "precisions": [
+      40.7514450867052,
+      12.397660818713451,
+      4.792899408284024,
+      2.4550898203592815
+    ],
+    "bp": 0.7285033857600854,
+    "sys_len": 1730,
+    "ref_len": 2278
+  },
+  "METEOR": {
+    "meteor": 0.19391400166269218
+  },
+  "Example Reference": "Electro-optic media are disclosed containing a plurality of types of electro-optic media within a single layer. The media provide blinking displays, displays in which images appear transiently and displays having a wider color gamut than conventional electro-optic displays",
+  "Example Prediction": "[0049] Thus, in general, the colors available from an electro-optic medium are those falling along a single line when plotted in a conventional color space, for example the standard ICE L*a*b colorspace, and the same range of colors will be seen when switching in either direction, i.e., from red to green or from green to red."
+}
+---------------------------------------------------------------------
+Model Name: "google/longt5-local-base"
+Max Input Length: 16384
+---------------------------------------------------------------------
+Results:
 
 ---------------------------------------------------------------------
