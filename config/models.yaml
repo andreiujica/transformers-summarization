@@ -1,9 +1,13 @@
 models:
-  - name: facebook/bart-large
+  - name: t5-base
+    max_input_length: 512
   - name: facebook/bart-base
+    max_input_length: 1024
   - name: google/pegasus-large
-  - name: t5-small
-  - name: allenai/led-base-16384
-  - name: sshleifer/distilbart-cnn-12-6
+    max_input_length: 1024
+  - name: allenai/longformer-base-4096
+    max_input_length: 4096
   - name: google/bigbird-pegasus-large-arxiv
-  - name: microsoft/prophetnet-large-uncased
+    max_input_length: 4096
+  - name: allenai/led-base-16384
+    max_input_length: 16384

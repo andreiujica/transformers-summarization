@@ -2,14 +2,13 @@
 This is the main entrypoint for the Hugging Face Space. It contains the Gradio interface for the summarization benchmark.
 It is also the place where we will be precomputing the metrics for all models in the config file - if needed.
 """
-
-import logging
 import yaml
 import gradio as gr
-from datasets import Dataset
-from src.precompute import precompute_average_metrics
-from src.dataset import get_dataset
-from src.evaluation import run_evaluation_suite
+from datasets import load_dataset
+from evaluate import load_metric
+from tqdm.auto import tqdm
+
+from src.summarize import load_model_and_tokenizer, summarize_via_tokenbatches
 
 DATA_CONFIG_FILE = 'config/dataset.yaml'
 
@@ -20,35 +19,44 @@ MODEL_CONFIG_FILE = 'config/models.yaml'
 
 with open(MODEL_CONFIG_FILE, 'r') as file:
     models_config = yaml.safe_load(file)['models']
-    models_array = [model['name'] for model in models_config]
 
-dataset = get_dataset(only_samples=True)
+# Evaluate a single model
+def evaluate_model(model_name):
+    for model in models_config['models']:
+        if model['name'] == model_name:
+            model_info = model
 
-# Compute the average metrics for the entire dataset if the precomputed metrics do not exist.
-precompute_average_metrics()
+    model, tokenizer = load_model_and_tokenizer(model_name)
+    dataset = load_dataset(data_config['name'], data_config['category'], split='test', trust_remote_code=True, streaming=True)
 
-def run_demo(model_name):
-    """
-    Run the summarization benchmark for a single model and five samples.
+    rouge = load_metric('rouge')
+    bleu = load_metric('sacrebleu')
+    meteor = load_metric('meteor')
 
-    Params:
-    - model_name: The name of the model to use
+    predictions, references = [], []
+    for item in tqdm(dataset, desc=f"Evaluating {model_name}"):
+        input_text = item[data_config['input_column']]
+        reference = item[data_config['summary_column']]
+        summary = summarize_via_tokenbatches(input_text, model, tokenizer, batch_length=model_info['max_input_length'])
+        predictions.append(summary)
+        references.append(reference)
 
-    @return:
-    - evaluation_scores: The evaluation JSON scores - ROUGE, BLEU, and METEOR
-    # TODO: 4. Add the JSON text to this page
-    """
+    # Compute metrics
+    rouge_scores = rouge.compute(predictions=predictions, references=references)
+    bleu_scores = bleu.compute(predictions=predictions, references=references)
+    meteor_scores = meteor.compute(predictions=predictions, references=references)
 
-    return run_evaluation_suite(model_name, dataset)
+    return f"ROUGE: {rouge_scores}, BLEU: {bleu_scores['score']}, METEOR: {meteor_scores['score']}"
+
 
 # Define the Gradio interface.
 iface = gr.Interface(
-    fn=run_demo,
+    fn=evaluate_model,
     inputs=[
-        gr.Dropdown(choices=models_array, label="Select Transformer Model"),
+        gr.Dropdown(choices=[model['name'] for model in models_config['models']], label="Select Transformer Model"),
     ],
     outputs=[
-        gr.JSON(label="Evaluation Scores"),
+        gr.Text(label="Evaluation Scores"),
     ],
     title="Transformer Model Summarization Benchmark",
     description="""This app benchmarks the out-of-the-box summarization capabilities of various transformer models using the BIGPATENT dataset. Select a model and see the performance metrics. Beware it will take around 5 minutes for the metrics to be computed."""
