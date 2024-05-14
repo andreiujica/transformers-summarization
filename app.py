@@ -51,6 +51,11 @@ def evaluate_model(model_name):
         summary = summarize_via_tokenbatches(input_text, model, tokenizer, batch_length=model_info['max_input_length'])
         predictions.append(summary[0])
         references.append(reference)
+
+        if count == 0:
+            example_reference = reference
+            example_prediction = summary[0]
+
         count += 1
 
     # Compute metrics
@@ -58,7 +63,13 @@ def evaluate_model(model_name):
     bleu_scores = bleu.compute(predictions=predictions, references=references)
     meteor_scores = meteor.compute(predictions=predictions, references=references)
 
-    return f"ROUGE: {rouge_scores}, BLEU: {bleu_scores}, METEOR: {meteor_scores}"
+    return {
+        'ROUGE': rouge_scores,
+        'BLEU': bleu_scores,
+        'METEOR': meteor_scores,
+        'Example Reference': example_reference,
+        'Example Prediction': example_prediction
+    }
 
 
 # Define the Gradio interface.
@@ -68,7 +79,7 @@ iface = gr.Interface(
         gr.Dropdown(choices=[model['name'] for model in models_config], label="Select Transformer Model"),
     ],
     outputs=[
-        gr.Text(label="Evaluation Scores"),
+        gr.JSON(label="Evaluation Scores"),
     ],
     title="Transformer Model Summarization Benchmark",
     description="""This app benchmarks the out-of-the-box summarization capabilities of various transformer models using the BIGPATENT dataset. Select a model and see the performance metrics. Beware it will take around 5 minutes for the metrics to be computed."""
