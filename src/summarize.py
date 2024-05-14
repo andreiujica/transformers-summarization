@@ -109,6 +109,7 @@ def summarize_via_tokenbatches(
         input_text, 
         add_special_tokens=True,
         max_length=batch_length,
+        padding="max_length",
         truncation=True,
         return_tensors="pt",
         return_overflowing_tokens=True,
