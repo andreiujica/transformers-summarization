@@ -58,7 +58,7 @@ def evaluate_model(model_name):
     bleu_scores = bleu.compute(predictions=predictions, references=references)
     meteor_scores = meteor.compute(predictions=predictions, references=references)
 
-    return f"ROUGE: {rouge_scores}, BLEU: {bleu_scores['score']}, METEOR: {meteor_scores['score']}"
+    return f"ROUGE: {rouge_scores}, BLEU: {bleu_scores}, METEOR: {meteor_scores}"
 
 
 # Define the Gradio interface.
