@@ -37,7 +37,7 @@ def load_model_and_tokenizer(model_name: str) -> tuple:
 
 def summarize_and_score(ids, mask, model, tokenizer, **kwargs):
     """
-    summarize_and_score - given a batch of ids and a mask, return a summary and a score for the summary
+    summarize_and_score - given a batch of ids and a mask, return a summary
     Args:
         ids (): the batch of ids
         mask (): the attention mask for the batch
