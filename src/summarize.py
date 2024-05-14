@@ -53,18 +53,23 @@ def summarize_and_score(ids, mask, model, tokenizer, **kwargs):
     input_ids = ids.to("cuda") if torch.cuda.is_available() else ids
     attention_mask = mask.to("cuda") if torch.cuda.is_available() else mask
 
-    global_attention_mask = torch.zeros_like(attention_mask)
-    # put global attention on <s> token
-    global_attention_mask[:, 0] = 1
+    model_kwargs = {
+        "input_ids": input_ids,
+        "attention_mask": attention_mask,
+        "output_scores": True,
+        "return_dict_in_generate": True,
+        **kwargs
+    }
 
-    summary_pred_ids = model.generate(
-        input_ids,
-        attention_mask=attention_mask,
-        global_attention_mask=global_attention_mask,
-        output_scores=True,
-        return_dict_in_generate=True,
-        **kwargs,
-    )
+    # Check if 'global_attention_mask' can be used
+    if hasattr(model.config, 'attention_window'):
+        global_attention_mask = torch.zeros_like(attention_mask)
+        # Typically put global attention on the first token.
+        global_attention_mask[:, 0] = 1
+        model_kwargs['global_attention_mask'] = global_attention_mask
+
+    summary_pred_ids = model.generate(**model_kwargs)
+    
     summary = tokenizer.batch_decode(
         summary_pred_ids.sequences,
         skip_special_tokens=True,
