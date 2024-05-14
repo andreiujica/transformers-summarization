@@ -9,9 +9,10 @@ from evaluate import load
 from tqdm.auto import tqdm
 from src.summarize import load_model_and_tokenizer, summarize_via_tokenbatches
 import logging
-import concurrent.futures
 
 logger = logging.getLogger(__name__)
+
+TOTAL_SAMPLES = 10
 
 DATA_CONFIG_FILE = 'config/dataset.yaml'
 
@@ -22,12 +23,6 @@ MODEL_CONFIG_FILE = 'config/models.yaml'
 
 with open(MODEL_CONFIG_FILE, 'r') as file:
     models_config = yaml.safe_load(file)['models']
-
-def process_item(item, model, tokenizer, max_input_length):
-    input_text = item['description'] 
-    reference = item['abstract'] 
-    summary = summarize_via_tokenbatches(input_text, model, tokenizer, batch_length=max_input_length)
-    return summary, reference
 
 # Evaluate a single model
 def evaluate_model(model_name):
@@ -46,12 +41,17 @@ def evaluate_model(model_name):
     meteor = load('meteor')
 
     predictions, references = [], []
-    with concurrent.futures.ProcessPoolExecutor() as executor:
-        futures = [executor.submit(process_item, item, model, tokenizer, model_info["max_input_length"]) for item in dataset]
-        for future in tqdm(concurrent.futures.as_completed(futures), total=len(futures), desc=f"Evaluating {model_name}"):
-            summary, reference = future.result()
-            predictions.append(summary)
-            references.append(reference)
+    count = 0
+    for item in tqdm(dataset, desc=f"Evaluating {model_name}", total=TOTAL_SAMPLES):
+        if count == TOTAL_SAMPLES:
+            break
+
+        input_text = item[data_config['input_column']]
+        reference = item[data_config['summary_column']]
+        summary = summarize_via_tokenbatches(input_text, model, tokenizer, batch_length=model_info['max_input_length'])
+        predictions.append(summary)
+        references.append(reference)
+        count += 1
 
     # Compute metrics
     rouge_scores = rouge.compute(predictions=predictions, references=references)
