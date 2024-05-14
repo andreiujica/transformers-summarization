@@ -53,7 +53,7 @@ def evaluate_model(model_name):
 iface = gr.Interface(
     fn=evaluate_model,
     inputs=[
-        gr.Dropdown(choices=[model['name'] for model in models_config['models']], label="Select Transformer Model"),
+        gr.Dropdown(choices=[model['name'] for model in models_config], label="Select Transformer Model"),
     ],
     outputs=[
         gr.Text(label="Evaluation Scores"),
