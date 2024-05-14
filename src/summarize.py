@@ -56,6 +56,7 @@ def summarize_and_score(ids, mask, model, tokenizer, **kwargs):
     model_kwargs = {
         "input_ids": input_ids,
         "attention_mask": attention_mask,
+        "return_dict_in_generate": True,
         **kwargs
     }
 
