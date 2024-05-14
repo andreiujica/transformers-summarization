@@ -56,8 +56,6 @@ def summarize_and_score(ids, mask, model, tokenizer, **kwargs):
     model_kwargs = {
         "input_ids": input_ids,
         "attention_mask": attention_mask,
-        "output_scores": True,
-        "return_dict_in_generate": True,
         **kwargs
     }
 
@@ -69,15 +67,14 @@ def summarize_and_score(ids, mask, model, tokenizer, **kwargs):
         model_kwargs['global_attention_mask'] = global_attention_mask
 
     summary_pred_ids = model.generate(**model_kwargs)
-    
+
     summary = tokenizer.batch_decode(
         summary_pred_ids.sequences,
         skip_special_tokens=True,
         remove_invalid_values=True,
     )
-    score = round(summary_pred_ids.sequences_scores.cpu().numpy()[0], 4)
 
-    return summary, score
+    return summary
 
 
 def summarize_via_tokenbatches(
@@ -127,12 +124,12 @@ def summarize_via_tokenbatches(
 
     if len(in_id_arr) <= 1:
         # If input fits in one batch, process it directly
-        summary, _ = summarize_and_score(in_id_arr[0], att_arr[0], model, tokenizer, **kwargs)
+        summary = summarize_and_score(in_id_arr[0], att_arr[0], model, tokenizer, **kwargs)
         pbar.update(len(in_id_arr))
     else:
         chunk_summaries = []
         for ids, mask in zip(in_id_arr, att_arr):
-            summary, _ = summarize_and_score(ids, mask, model, tokenizer, **kwargs)
+            summary = summarize_and_score(ids, mask, model, tokenizer, **kwargs)
             chunk_summaries.append(summary)
             pbar.update(1)
         
@@ -145,7 +142,7 @@ def summarize_via_tokenbatches(
             truncation=True,
             return_tensors="pt"
         )
-        final_summary, _ = summarize_and_score(final_encoded_input['input_ids'][0], final_encoded_input['attention_mask'][0], model, tokenizer, **kwargs)
+        final_summary = summarize_and_score(final_encoded_input['input_ids'][0], final_encoded_input['attention_mask'][0], model, tokenizer, **kwargs)
         summary = final_summary
 
     pbar.close()
