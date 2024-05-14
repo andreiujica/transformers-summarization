@@ -125,9 +125,130 @@ Results:
   "Example Prediction": "[0049] Thus, in general, the colors available from an electro-optic medium are those falling along a single line when plotted in a conventional color space, for example the standard ICE L*a*b colorspace, and the same range of colors will be seen when switching in either direction, i.e., from red to green or from green to red."
 }
 ---------------------------------------------------------------------
+Model Name: "google/bigbird-pegasus-large-arxiv"
+Max Input Length: 4096
+---------------------------------------------------------------------
+Results:
+{
+  "ROUGE": {
+    "rouge1": 0.21825188358686892,
+    "rouge2": 0.03620357495598954,
+    "rougeL": 0.14100098084272703,
+    "rougeLsum": 0.14120253617945042
+  },
+  "BLEU": {
+    "score": 0.6688910811572925,
+    "counts": [
+      530,
+      77,
+      5,
+      0
+    ],
+    "totals": [
+      2702,
+      2682,
+      2662,
+      2642
+    ],
+    "precisions": [
+      19.615099925980754,
+      2.870991797166294,
+      0.18782870022539444,
+      0.018925056775170326
+    ],
+    "bp": 1,
+    "sys_len": 2702,
+    "ref_len": 2278
+  },
+  "METEOR": {
+    "meteor": 0.14123364374095954
+  },
+  "Example Reference": "Electro-optic media are disclosed containing a plurality of types of electro-optic media within a single layer. The media provide blinking displays, displays in which images appear transiently and displays having a wider color gamut than conventional electro-optic displays",
+  "Example Prediction": "this paper describes a new type of flexible display in which an electro-optic medium is used to drive a display consisting of an array of discrete pixels having differing optical characteristics.<n> such a discrete pixel display can be used for example to flash a fixed image, to display multiple images of the same individual object in different locations or to make arbitrary manipulations of individual pixels by changing the optical characteristic of one pixel to that of another pixel ; in addition to providing a variety of possible applications such as digital holography and displays of various types and sizes the present invention provides an economical way to prepare such displays and to use them in conjunction with each other and with other types of displays in order to provide an attractive aspect and a low cost of use in point - of - view displays : the main advantages of this approach are that it does not require the use of any backplanes at all and it provides a method for the direct drive of a large number of display elements to any desired location on the display s display plane so that each of those displays may be driven by a single device having only a few electrodes and an electrical supply and control circuitry so as to be easily interchangeable between any two of that displays on their respective display planes and from which the desired image or multiple"
+}
+---------------------------------------------------------------------
+
 Model Name: "pszemraj/long-t5-tglobal-base-sci-simplify"
 Max Input Length: 16384
 ---------------------------------------------------------------------
 Results:
-
+{
+  "ROUGE": {
+    "rouge1": 0.2821010315985988,
+    "rouge2": 0.038806005892542954,
+    "rougeL": 0.15292598011761716,
+    "rougeLsum": 0.15270042982898185
+  },
+  "BLEU": {
+    "score": 0.8347592097034329,
+    "counts": [
+      702,
+      100,
+      4,
+      0
+    ],
+    "totals": [
+      2349,
+      2329,
+      2309,
+      2289
+    ],
+    "precisions": [
+      29.885057471264368,
+      4.293688278231,
+      0.17323516673884798,
+      0.021843599825251202
+    ],
+    "bp": 1,
+    "sys_len": 2349,
+    "ref_len": 2278
+  },
+  "METEOR": {
+    "meteor": 0.20297707729224418
+  },
+  "Example Reference": "Electro-optic media are disclosed containing a plurality of types of electro-optic media within a single layer. The media provide blinking displays, displays in which images appear transiently and displays having a wider color gamut than conventional electro-optic displays",
+  "Example Prediction": "Computer displays are becoming increasingly used for the display of information and other data. However, they can be very difficult to use because of their long lasting quality. This is one reason why such displays may not be widely used."
+}
+---------------------------------------------------------------------
+Model Name: "allenai/led-base-16384"
+Max Input Length: 16384
+---------------------------------------------------------------------
+Results: 
+{
+  "ROUGE": {
+    "rouge1": 0.05626817259215541,
+    "rouge2": 0.0111906973192758,
+    "rougeL": 0.04859559091921272,
+    "rougeLsum": 0.048566976948765606
+  },
+  "BLEU": {
+    "score": 0.03869385836267561,
+    "counts": [
+      81,
+      17,
+      5,
+      2
+    ],
+    "totals": [
+      435,
+      415,
+      395,
+      376
+    ],
+    "precisions": [
+      18.620689655172413,
+      4.096385542168675,
+      1.2658227848101267,
+      0.5319148936170213
+    ],
+    "bp": 0.014454035801531954,
+    "sys_len": 435,
+    "ref_len": 2278
+  },
+  "METEOR": {
+    "meteor": 0.029229587665226365
+  },
+  "Example Reference": "Electro-optic media are disclosed containing a plurality of types of electro-optic media within a single layer. The media provide blinking displays, displays in which images appear transiently and displays having a wider color gamut than conventional electro-optic displays",
+  "Example Prediction": "electrophoretic medium is a medium that is capable of producing a wide range of colors"
+}
 ---------------------------------------------------------------------
