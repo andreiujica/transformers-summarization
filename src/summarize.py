@@ -1,6 +1,6 @@
 import logging
 import torch
-import tqdm
+from tqdm.auto import tqdm
 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 
 from src.utils import validate_pytorch2
@@ -103,7 +103,7 @@ def summarize_via_tokenbatches(
             f"batch_length must be at least {min_batch_length}. Setting batch_length to {min_batch_length}"
         )
         batch_length = min_batch_length
-    
+
     logger.info(f"batch_length: {batch_length}, batch_stride: {batch_stride}")
     encoded_input = tokenizer.encode_plus(
         input_text, 
