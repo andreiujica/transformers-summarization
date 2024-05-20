@@ -90,9 +90,9 @@ def run_optuna(n_trials):
     best_params = None
     num_samples = initial_sample_size
     while num_samples <= max_sample_size:
-        with gr.Progress(track_tqdm=True) as progress:
-            for _ in progress.tqdm(range(n_trials), desc=f"Running Optuna with {num_samples} samples"):
-                study.optimize(lambda trial: objective(trial, num_samples), n_trials=1, n_jobs=1)
+        progress = gr.Progress(track_tqdm=True)
+        for _ in progress.tqdm(range(n_trials), desc=f"Running Optuna with {num_samples} samples"):
+            study.optimize(lambda trial: objective(trial, num_samples), n_trials=1, n_jobs=1)
         best_params = study.best_params
         num_samples += increment_size
     
