@@ -20,13 +20,19 @@ def preprocess_function(examples, tokenizer, chunk_size=16000):
     inputs = examples['description']
     abstracts = examples['abstract']
 
+    if not inputs or not abstracts:
+        raise ValueError("Inputs or abstracts are empty")
+
     for idx, (input_text, abstract) in enumerate(zip(inputs, abstracts)):
 
         input_chunks = chunk_text(input_text, tokenizer, chunk_size)
         label_tokens = tokenizer(abstract, return_tensors='pt', max_length=2048, truncation=True, padding="max_length")['input_ids']
+
+        if not input_chunks:
+            raise ValueError(f"No chunks generated for document {idx}")
         
         for chunk_idx, input_chunk in enumerate(input_chunks):
-            input_chunk_tokens = tokenizer.pad({'input_ids': input_chunk}, padding="max_length", max_length=chunk_size)
+            input_chunk_tokens = tokenizer(input_chunk, padding="max_length", max_length=chunk_size)
             yield {
                 "input_ids": input_chunk_tokens['input_ids'],
                 "attention_mask": input_chunk_tokens['attention_mask'],
