@@ -11,7 +11,6 @@ class StreamedDataset(IterableDataset):
 
 def chunk_text(text, tokenizer, chunk_size=16000):
     tokens = tokenizer(text, return_tensors='pt', max_length=None, truncation=False)['input_ids']
-    tokens = tokens.squeeze()
     chunks = [tokens[i:i + chunk_size] for i in range(0, len(tokens), chunk_size)]
     return chunks
 
@@ -34,15 +33,15 @@ def preprocess_function(examples, tokenizer, chunk_size=16000):
         for chunk_idx, input_chunk in enumerate(input_chunks):
 
             input_chunk_tokens = tokenizer.pad(
-                {'input_ids': input_chunk.unsqueeze(0)}, 
+                {'input_ids': input_chunk}, 
                 padding="max_length", 
                 max_length=chunk_size, 
                 return_tensors='pt'
             )
             yield {
-                "input_ids": input_chunk_tokens['input_ids'].squeeze(),
-                "attention_mask": input_chunk_tokens['attention_mask'].squeeze(),
-                "labels": label_tokens.squeeze(),
+                "input_ids": input_chunk_tokens['input_ids'].squeeze(0),
+                "attention_mask": input_chunk_tokens['attention_mask'].squeeze(0),
+                "labels": label_tokens.squeeze(0),
                 "doc_id": idx,
                 "chunk_id": chunk_idx
             }

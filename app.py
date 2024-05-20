@@ -5,6 +5,7 @@ from datasets import load_dataset
 from src.finetune import StreamedDataset
 from evaluate import load
 from src.summarize import load_model_and_tokenizer
+from torch.utils.data import IterableDataset, DataLoader
 
 model, tokenizer = load_model_and_tokenizer("allenai/led-base-16384")
 metric = load("rouge")
@@ -65,9 +66,13 @@ def objective(trial):
     eval_dataset = StreamedDataset(small_eval_dataset, tokenizer, chunk_size=16000)
     
     data_collator = DataCollatorForSeq2Seq(tokenizer, model=model)
-    
-    data_collator = DataCollatorForSeq2Seq(tokenizer, model=model)
 
+    train_dataloader = DataLoader(train_dataset, batch_size=per_device_train_batch_size, collate_fn=data_collator)
+    eval_dataloader = DataLoader(eval_dataset, batch_size=per_device_train_batch_size, collate_fn=data_collator)
+
+    # Debugging: Print a batch to check the data format
+    raise Exception(next(iter(train_dataloader)))
+    
     trainer = Trainer(
         model=model,
         args=training_args,
