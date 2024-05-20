@@ -32,7 +32,10 @@ def preprocess_function(examples, tokenizer, chunk_size=16000):
             raise ValueError(f"No chunks generated for document {idx}")
         
         for chunk_idx, input_chunk in enumerate(input_chunks):
-            input_chunk_tokens = tokenizer(input_chunk, padding="max_length", max_length=chunk_size)
+
+            raise ValueError(input_chunks)
+            
+            input_chunk_tokens = tokenizer(input_chunk, return_tensors='pt', padding="max_length", max_length=chunk_size)
             yield {
                 "input_ids": input_chunk_tokens['input_ids'],
                 "attention_mask": input_chunk_tokens['attention_mask'],
