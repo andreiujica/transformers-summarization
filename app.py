@@ -1,91 +1,113 @@
-"""
-This is the main entrypoint for the Hugging Face Space. It contains the Gradio interface for the summarization benchmark.
-It is also the place where we will be precomputing the metrics for all models in the config file - if needed.
-"""
-import yaml
 import gradio as gr
+import optuna
+from transformers import LEDForConditionalGeneration, LEDTokenizer, Trainer, TrainingArguments, DataCollatorForSeq2Seq
 from datasets import load_dataset
+from src.finetune import StreamedDataset
 from evaluate import load
-from tqdm.auto import tqdm
-from src.summarize import load_model_and_tokenizer, summarize_via_tokenbatches
-import logging
+from src.summarize import load_model_and_tokenizer
 
-logger = logging.getLogger(__name__)
+model, tokenizer = load_model_and_tokenizer("allenai/led-base-16384")
+metric = load("rouge")
 
-TOTAL_SAMPLES = 200
+def compute_metrics(pred):
+    labels_ids = pred.label_ids
+    pred_ids = pred.predictions
 
-DATA_CONFIG_FILE = 'config/dataset.yaml'
+    pred_str = tokenizer.batch_decode(pred_ids, skip_special_tokens=True)
+    labels_str = tokenizer.batch_decode(labels_ids, skip_special_tokens=True)
 
-with open(DATA_CONFIG_FILE, 'r') as file:
-    data_config = yaml.safe_load(file)['dataset']
+    # Group by document ID
+    doc_results = {}
+    for pred, label, doc_id in zip(pred_str, labels_str, pred.predictions.doc_ids):
+        if doc_id not in doc_results:
+            doc_results[doc_id] = {"pred": [], "label": []}
+        doc_results[doc_id]["pred"].append(pred)
+        doc_results[doc_id]["label"].append(label)
 
-MODEL_CONFIG_FILE = 'config/models.yaml'
+    # Aggregate results per document
+    aggregated_preds = [" ".join(doc_results[doc_id]["pred"]) for doc_id in doc_results]
+    aggregated_labels = [" ".join(doc_results[doc_id]["label"]) for doc_id in doc_results]
 
-with open(MODEL_CONFIG_FILE, 'r') as file:
-    models_config = yaml.safe_load(file)['models']
+    result = metric.compute(predictions=aggregated_preds, references=aggregated_labels)
+    return result
 
-# Evaluate a single model
-def evaluate_model(model_name):
-    for model in models_config:
-        if model['name'] == model_name:
-            model_info = model
+def create_small_dataset(dataset, num_samples):
+    return dataset.select(range(num_samples))
 
-    model, tokenizer = load_model_and_tokenizer(model_name)
-    logger.info(f"Loaded model {model_name}")
+initial_sample_size = 1000
+increment_size = 1000
+max_sample_size = 5000 
 
-    dataset = load_dataset(data_config['name'], data_config['category'], split='test', trust_remote_code=True, streaming=True)
-    logger.info(f"Loaded dataset {data_config['name']}")
+def objective(trial, num_samples=initial_sample_size):
+    learning_rate = trial.suggest_loguniform('learning_rate', 1e-5, 1e-4)
+    num_train_epochs = trial.suggest_int('num_train_epochs', 1, 5)
+    per_device_train_batch_size = trial.suggest_categorical('per_device_train_batch_size', [1, 2, 4])
+    
+    training_args = TrainingArguments(
+        output_dir='./results',
+        evaluation_strategy="epoch",
+        learning_rate=learning_rate,
+        per_device_train_batch_size=per_device_train_batch_size,
+        per_device_eval_batch_size=per_device_train_batch_size,
+        weight_decay=0.01,
+        save_total_limit=3,
+        num_train_epochs=num_train_epochs,
+        predict_with_generate=True,
+        fp16=True,
+    )
 
-    rouge = load('rouge')
-    bleu = load('sacrebleu')
-    meteor = load('meteor')
+    full_train_dataset = load_dataset('big_patent', 'g', split='train', streaming=True)
+    full_eval_dataset = load_dataset('big_patent', 'g', split='validation', streaming=True)
+    
+    small_train_dataset = create_small_dataset(full_train_dataset, num_samples)
+    small_eval_dataset = create_small_dataset(full_eval_dataset, num_samples)
 
-    predictions, references = [], []
-    count = 0
-    for item in tqdm(dataset, desc=f"Evaluating {model_name}", total=TOTAL_SAMPLES):
-        if count == TOTAL_SAMPLES:
-            break
+    train_dataset = StreamedDataset(small_train_dataset, tokenizer, chunk_size=16000)
+    eval_dataset = StreamedDataset(small_eval_dataset, tokenizer, chunk_size=16000)
+    
+    data_collator = DataCollatorForSeq2Seq(tokenizer, model=model)
+    
+    data_collator = DataCollatorForSeq2Seq(tokenizer, model=model)
 
-        input_text = item[data_config['input_column']]
-        reference = item[data_config['summary_column']]
-        summary = summarize_via_tokenbatches(input_text, model, tokenizer, batch_length=model_info['max_input_length'])
-        predictions.append(summary[0])
-        references.append(reference)
+    trainer = Trainer(
+        model=model,
+        args=training_args,
+        train_dataset=train_dataset,
+        eval_dataset=eval_dataset,
+        data_collator=data_collator,
+        compute_metrics=compute_metrics  # Custom compute_metrics function
+    )
 
-        if count == 0:
-            example_reference = reference
-            example_prediction = summary[0]
-
-        count += 1
-
-    # Compute metrics
-    rouge_scores = rouge.compute(predictions=predictions, references=references)
-    bleu_scores = bleu.compute(predictions=predictions, references=references)
-    meteor_scores = meteor.compute(predictions=predictions, references=references)
-    results = {
-        'ROUGE': rouge_scores,
-        'BLEU': bleu_scores,
-        'METEOR': meteor_scores,
-        'Example Reference': example_reference,
-        'Example Prediction': example_prediction
-    }
-
-    logger.info(f"Results for {model_name}: {results}")
-
-    return results
+    trainer.train()
+    eval_result = trainer.evaluate()
+    return eval_result['eval_loss']
 
 
-# Define the Gradio interface.
+def run_optuna(n_trials):
+    pruner = optuna.pruners.MedianPruner(n_startup_trials=5, n_warmup_steps=30, interval_steps=10)
+    study = optuna.create_study(direction='minimize', pruner=pruner)
+    
+    best_params = None
+    num_samples = initial_sample_size
+    while num_samples <= max_sample_size:
+        with gr.Progress(track_tqdm=True, label=f"Hyperparameter Optimization Progress with {num_samples} samples") as progress:
+            study.optimize(lambda trial: objective(trial, num_samples), n_trials=n_trials, n_jobs=4)
+        best_params = study.best_params
+        num_samples += increment_size
+    
+    return best_params
+
+def gradio_app(n_trials):
+    best_params = run_optuna(n_trials)
+    return best_params
+
+
 iface = gr.Interface(
-    fn=evaluate_model,
-    inputs=[
-        gr.Dropdown(choices=[model['name'] for model in models_config], label="Select Transformer Model"),
-    ],
-    outputs=[
-        gr.JSON(label="Evaluation Scores"),
-    ],
-    title="Transformer Model Summarization Benchmark",
-    description="""This app benchmarks the out-of-the-box summarization capabilities of various transformer models using the BIGPATENT dataset. Select a model and see the performance metrics. Beware it will take around 5 minutes for the metrics to be computed."""
+    fn=gradio_app,
+    inputs=gr.inputs.Slider(minimum=1, maximum=50, step=1, default=20, label="Number of Trials"),
+    outputs="json",
+    title="Optuna Hyperparameter Optimization",
+    description="Fine-tune LED on BigPatent dataset with Optuna for hyperparameter optimization."
 )
 
 if __name__ == "__main__":
