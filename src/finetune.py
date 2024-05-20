@@ -33,12 +33,15 @@ def preprocess_function(examples, tokenizer, chunk_size=16000):
         
         for chunk_idx, input_chunk in enumerate(input_chunks):
 
-            raise ValueError(input_chunks)
-            
-            input_chunk_tokens = tokenizer(input_chunk, return_tensors='pt', padding="max_length", max_length=chunk_size)
+            input_chunk_tokens = tokenizer.pad(
+                {'input_ids': input_chunk.unsqueeze(0)}, 
+                padding="max_length", 
+                max_length=chunk_size, 
+                return_tensors='pt'
+            )
             yield {
-                "input_ids": input_chunk_tokens['input_ids'],
-                "attention_mask": input_chunk_tokens['attention_mask'],
+                "input_ids": input_chunk_tokens['input_ids'].squeeze(),
+                "attention_mask": input_chunk_tokens['attention_mask'].squeeze(),
                 "labels": label_tokens.squeeze(),
                 "doc_id": idx,
                 "chunk_id": chunk_idx
