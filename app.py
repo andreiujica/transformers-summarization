@@ -34,11 +34,7 @@ def compute_metrics(pred):
 def create_small_dataset(dataset, num_samples):
     return dataset.select(range(num_samples))
 
-initial_sample_size = 1000
-increment_size = 1000
-max_sample_size = 5000 
-
-def objective(trial, num_samples=initial_sample_size):
+def objective(trial):
     learning_rate = trial.suggest_loguniform('learning_rate', 1e-5, 1e-4)
     num_train_epochs = trial.suggest_int('num_train_epochs', 1, 5)
     per_device_train_batch_size = trial.suggest_categorical('per_device_train_batch_size', [1, 2, 4]) 
@@ -58,8 +54,8 @@ def objective(trial, num_samples=initial_sample_size):
     full_train_dataset = load_dataset('big_patent', 'g', split='train', streaming=True)
     full_eval_dataset = load_dataset('big_patent', 'g', split='validation', streaming=True)
     
-    small_train_dataset = create_small_dataset(full_train_dataset, num_samples)
-    small_eval_dataset = create_small_dataset(full_eval_dataset, num_samples)
+    small_train_dataset = create_small_dataset(full_train_dataset, 1000)
+    small_eval_dataset = create_small_dataset(full_eval_dataset, 1000)
 
     train_dataset = StreamedDataset(small_train_dataset, tokenizer, chunk_size=16000)
     eval_dataset = StreamedDataset(small_eval_dataset, tokenizer, chunk_size=16000)
@@ -87,13 +83,9 @@ def run_optuna(n_trials):
     study = optuna.create_study(direction='minimize', pruner=pruner)
     
     best_params = None
-    num_samples = initial_sample_size
-    while num_samples <= max_sample_size:
-        progress = gr.Progress(track_tqdm=True)
-        for _ in progress.tqdm(range(n_trials), desc=f"Running Optuna with {num_samples} samples"):
-            study.optimize(lambda trial: objective(trial, num_samples), n_trials=1, n_jobs=1)
-        best_params = study.best_params
-        num_samples += increment_size
+    progress = gr.Progress(track_tqdm=True)
+    for _ in progress.tqdm(range(n_trials), desc="Running Optuna trials"):
+        study.optimize(lambda trial: objective(trial), n_trials=1, n_jobs=4)
     
     return best_params
 
