@@ -32,7 +32,7 @@ def compute_metrics(pred):
     return result
 
 def create_small_dataset(dataset, num_samples):
-    return dataset.take(num_samples)
+    return dataset.select(range(num_samples))
 
 def objective(trial):
     learning_rate = trial.suggest_loguniform('learning_rate', 1e-5, 1e-4)
@@ -52,8 +52,8 @@ def objective(trial):
         fp16=True,
     )
 
-    full_train_dataset = load_dataset('big_patent', 'g', split='train', trust_remote_code=True, streaming=True)
-    full_eval_dataset = load_dataset('big_patent', 'g', split='validation', trust_remote_code=True, streaming=True)
+    full_train_dataset = load_dataset('big_patent', 'g', split='train', trust_remote_code=True)
+    full_eval_dataset = load_dataset('big_patent', 'g', split='validation', trust_remote_code=True)
     
     small_train_dataset = create_small_dataset(full_train_dataset, 1000)
     small_eval_dataset = create_small_dataset(full_eval_dataset, 1000)
