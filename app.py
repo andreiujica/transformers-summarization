@@ -41,7 +41,7 @@ max_sample_size = 5000
 def objective(trial, num_samples=initial_sample_size):
     learning_rate = trial.suggest_loguniform('learning_rate', 1e-5, 1e-4)
     num_train_epochs = trial.suggest_int('num_train_epochs', 1, 5)
-    per_device_train_batch_size = trial.suggest_categorical('per_device_train_batch_size', [1, 2, 4])
+    per_device_train_batch_size = trial.suggest_categorical('per_device_train_batch_size', [1, 2, 4]) 
     
     training_args = TrainingArguments(
         output_dir='./results',
