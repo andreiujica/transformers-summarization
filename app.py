@@ -91,7 +91,8 @@ def run_optuna(n_trials):
     num_samples = initial_sample_size
     while num_samples <= max_sample_size:
         with gr.Progress(track_tqdm=True, label=f"Hyperparameter Optimization Progress with {num_samples} samples") as progress:
-            study.optimize(lambda trial: objective(trial, num_samples), n_trials=n_trials, n_jobs=4)
+            for _ in progress.tqdm(range(n_trials), desc=f"Running Optuna with {num_samples} samples"):
+                study.optimize(lambda trial: objective(trial, num_samples), n_trials=1, n_jobs=1)
         best_params = study.best_params
         num_samples += increment_size
     
@@ -104,7 +105,7 @@ def gradio_app(n_trials):
 
 iface = gr.Interface(
     fn=gradio_app,
-    inputs=gr.inputs.Slider(minimum=1, maximum=50, step=1, default=20, label="Number of Trials"),
+    inputs=gr.Slider(minimum=1, maximum=50, step=1, default=20, label="Number of Trials"),
     outputs="json",
     title="Optuna Hyperparameter Optimization",
     description="Fine-tune LED on BigPatent dataset with Optuna for hyperparameter optimization."
