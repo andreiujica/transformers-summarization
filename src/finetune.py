@@ -29,7 +29,7 @@ def preprocess_function(examples, tokenizer, chunk_size=16000):
         label_tokens = tokenizer(abstract, return_tensors='pt', max_length=2048, truncation=True, padding="max_length")['input_ids']
 
         if not input_chunks:
-            raise ValueError(f"No chunks generated for document {idx}")
+            raise ValueError(f"No chunks generated for document {idx}") 
         
         for chunk_idx, input_chunk in enumerate(input_chunks):
 
