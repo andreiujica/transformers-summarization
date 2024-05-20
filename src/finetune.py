@@ -1,4 +1,5 @@
 from torch.utils.data import IterableDataset
+from transformers import DataCollatorForSeq2Seq
 
 class StreamedDataset(IterableDataset):
     def __init__(self, dataset, tokenizer, chunk_size=16000):
@@ -13,6 +14,22 @@ def chunk_text(text, tokenizer, chunk_size=16000):
     tokens = tokenizer(text, return_tensors='pt', max_length=None, truncation=False)['input_ids']
     chunks = [tokens[i:i + chunk_size] for i in range(0, len(tokens), chunk_size)]
     return chunks
+
+
+class CustomDataCollator(DataCollatorForSeq2Seq):
+    def __call__(self, features):
+        # Extract doc_ids and chunk_ids
+        doc_ids = [feature.pop('doc_id') for feature in features]
+        chunk_ids = [feature.pop('chunk_id') for feature in features]
+        
+        # Use the parent class to collate the remaining fields
+        batch = super().__call__(features)
+        
+        # Add doc_ids and chunk_ids back to the batch
+        batch['doc_ids'] = doc_ids
+        batch['chunk_ids'] = chunk_ids
+        
+        return batch
 
 
 def preprocess_function(examples, tokenizer, chunk_size=16000):
