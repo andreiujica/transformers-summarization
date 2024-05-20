@@ -1,87 +1,98 @@
 import gradio as gr
 import optuna
-from transformers import LEDForConditionalGeneration, LEDTokenizer, Trainer, TrainingArguments, DataCollatorForSeq2Seq
+from transformers import DataCollatorForSeq2Seq, Seq2SeqTrainingArguments, Seq2SeqTrainer
 from datasets import load_dataset
-from src.finetune import StreamedDataset, CustomDataCollator
+from src.finetune import ensure_equal_chunks
 from evaluate import load
 from src.summarize import load_model_and_tokenizer
-from torch.utils.data import IterableDataset, DataLoader
+
 
 model, tokenizer = load_model_and_tokenizer("allenai/led-base-16384")
+data_collator = DataCollatorForSeq2Seq(tokenizer, model=model)
+dataset = load_dataset('big_patent', 'g', trust_remote_code=True)
+
+train_dataset = dataset['train'].select(range(100))  # Use a subset for demonstration
+val_dataset = dataset['validation'].select(range(20))
+
+def preprocess_data(examples):
+    descriptions = examples['description']
+    abstracts = examples['abstract']
+    all_inputs = []
+    
+    for description, abstract in zip(descriptions, abstracts):
+        document_chunks, summary_sentences = ensure_equal_chunks(description, abstract)
+        for chunk, summary_sentence in zip(document_chunks, summary_sentences):
+            inputs = tokenizer(chunk, max_length=16384, truncation=True, padding="max_length")
+            labels = tokenizer(summary_sentence, max_length=16384, truncation=True, padding="max_length")
+            inputs['labels'] = labels['input_ids']
+            all_inputs.append(inputs)
+    
+    return {
+        'input_ids': [input['input_ids'] for input in all_inputs],
+        'attention_mask': [input['attention_mask'] for input in all_inputs],
+        'labels': [input['labels'] for input in all_inputs]
+    }
+
+train_dataset = train_dataset.map(preprocess_data, batched=True, remove_columns=["description", "abstract"])
+val_dataset = val_dataset.map(preprocess_data, batched=True, remove_columns=["description", "abstract"])
+
 metric = load("rouge")
 
 def compute_metrics(pred):
     labels_ids = pred.label_ids
-    pred_ids = pred.predictions
-
+    pred_ids = pred.predictions.argmax(-1)
+    
     pred_str = tokenizer.batch_decode(pred_ids, skip_special_tokens=True)
-    labels_str = tokenizer.batch_decode(labels_ids, skip_special_tokens=True)
+    labels_ids[labels_ids == -100] = tokenizer.pad_token_id
+    label_str = tokenizer.batch_decode(labels_ids, skip_special_tokens=True)
+    
+    rouge_scores = metric.compute(predictions=pred_str, references=label_str)
+    
+    return {
+        "rouge1": rouge_scores["rouge1"],
+        "rouge2": rouge_scores["rouge2"],
+        "rougeL": rouge_scores["rougeL"],
+    }
 
-    # Group by document ID
-    doc_results = {}
-    for pred, label, doc_id in zip(pred_str, labels_str, pred.predictions.doc_ids):
-        if doc_id not in doc_results:
-            doc_results[doc_id] = {"pred": [], "label": []}
-        doc_results[doc_id]["pred"].append(pred)
-        doc_results[doc_id]["label"].append(label)
-
-    # Aggregate results per document
-    aggregated_preds = [" ".join(doc_results[doc_id]["pred"]) for doc_id in doc_results]
-    aggregated_labels = [" ".join(doc_results[doc_id]["label"]) for doc_id in doc_results]
-
-    result = metric.compute(predictions=aggregated_preds, references=aggregated_labels)
-    return result
-
-def create_small_dataset(dataset, num_samples):
-    return dataset.select(range(num_samples))
 
 def objective(trial):
-    learning_rate = trial.suggest_loguniform('learning_rate', 1e-5, 1e-4)
-    num_train_epochs = trial.suggest_int('num_train_epochs', 1, 5)
-    per_device_train_batch_size = trial.suggest_categorical('per_device_train_batch_size', [1, 2, 4]) 
+    # Suggest hyperparameters
+    learning_rate = trial.suggest_float("learning_rate", 1e-5, 5e-5, log=True)
+    num_train_epochs = trial.suggest_int("num_train_epochs", 1, 3)
+    per_device_train_batch_size = trial.suggest_categorical("per_device_train_batch_size", [4, 8, 16])
     
-    training_args = TrainingArguments(
-        output_dir='./results',
+    # Define training arguments
+    training_args = Seq2SeqTrainingArguments(
+        output_dir="./results",
         evaluation_strategy="epoch",
         learning_rate=learning_rate,
         per_device_train_batch_size=per_device_train_batch_size,
-        per_device_eval_batch_size=per_device_train_batch_size,
-        weight_decay=0.01,
-        save_total_limit=3,
         num_train_epochs=num_train_epochs,
-        max_steps=1000,
+        weight_decay=0.01,
+        save_total_limit=1,
+        remove_unused_columns=False,
+        logging_dir='./logs',
+        predict_with_generate=True,
         fp16=True,
     )
-
-    full_train_dataset = load_dataset('big_patent', 'g', split='train[:1000]', trust_remote_code=True)
-    full_eval_dataset = load_dataset('big_patent', 'g', split='validation[:1000]', trust_remote_code=True)
     
-    # small_train_dataset = create_small_dataset(full_train_dataset, 1000)
-    # small_eval_dataset = create_small_dataset(full_eval_dataset, 1000)
-
-    small_train_dataset = full_train_dataset
-    small_eval_dataset = full_eval_dataset
-
-    train_dataset = StreamedDataset(small_train_dataset, tokenizer, chunk_size=16000)
-    eval_dataset = StreamedDataset(small_eval_dataset, tokenizer, chunk_size=16000)
-    
-    data_collator = CustomDataCollator(tokenizer, model=model)
-
-    # train_dataloader = DataLoader(train_dataset, batch_size=per_device_train_batch_size, collate_fn=data_collator)
-    # eval_dataloader = DataLoader(eval_dataset, batch_size=per_device_train_batch_size, collate_fn=data_collator)
-
-    trainer = Trainer(
+    # Initialize Seq2SeqTrainer
+    trainer = Seq2SeqTrainer(
         model=model,
         args=training_args,
         train_dataset=train_dataset,
-        eval_dataset=eval_dataset,
+        eval_dataset=val_dataset,
+        tokenizer=tokenizer,
         data_collator=data_collator,
         compute_metrics=compute_metrics,
     )
-
+    
+    # Train and evaluate
     trainer.train()
-    eval_result = trainer.evaluate()
-    return eval_result['eval_loss']
+    eval_results = trainer.evaluate()
+    
+    # Return the evaluation loss
+    return eval_results["eval_loss"]
 
 
 def run_optuna(n_trials):
