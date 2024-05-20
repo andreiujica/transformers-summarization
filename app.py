@@ -48,6 +48,7 @@ def objective(trial):
         weight_decay=0.01,
         save_total_limit=3,
         num_train_epochs=num_train_epochs,
+        max_steps=1000,
         fp16=True,
     )
 
@@ -70,7 +71,7 @@ def objective(trial):
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
         data_collator=data_collator,
-        compute_metrics=compute_metrics  # Custom compute_metrics function
+        compute_metrics=compute_metrics,
     )
 
     trainer.train()
