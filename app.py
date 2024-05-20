@@ -105,7 +105,7 @@ def gradio_app(n_trials):
 
 iface = gr.Interface(
     fn=gradio_app,
-    inputs=gr.Slider(minimum=1, maximum=50, step=1, default=20, label="Number of Trials"),
+    inputs=gr.Slider(minimum=1, maximum=50, step=1, value=20, label="Number of Trials"),
     outputs="json",
     title="Optuna Hyperparameter Optimization",
     description="Fine-tune LED on BigPatent dataset with Optuna for hyperparameter optimization."
