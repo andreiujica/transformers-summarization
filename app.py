@@ -52,11 +52,14 @@ def objective(trial):
         fp16=True,
     )
 
-    full_train_dataset = load_dataset('big_patent', 'g', split='train', trust_remote_code=True)
-    full_eval_dataset = load_dataset('big_patent', 'g', split='validation', trust_remote_code=True)
+    full_train_dataset = load_dataset('big_patent', 'g', split='train[:1000]', trust_remote_code=True)
+    full_eval_dataset = load_dataset('big_patent', 'g', split='validation[:1000]', trust_remote_code=True)
     
-    small_train_dataset = create_small_dataset(full_train_dataset, 1000)
-    small_eval_dataset = create_small_dataset(full_eval_dataset, 1000)
+    # small_train_dataset = create_small_dataset(full_train_dataset, 1000)
+    # small_eval_dataset = create_small_dataset(full_eval_dataset, 1000)
+
+    small_train_dataset = full_train_dataset
+    small_eval_dataset = full_eval_dataset
 
     train_dataset = StreamedDataset(small_train_dataset, tokenizer, chunk_size=16000)
     eval_dataset = StreamedDataset(small_eval_dataset, tokenizer, chunk_size=16000)
