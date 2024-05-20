@@ -23,7 +23,7 @@ def preprocess_data(examples):
         document_chunks, summary_sentences = ensure_equal_chunks(description, abstract)
         for chunk, summary_sentence in zip(document_chunks, summary_sentences):
             inputs = tokenizer(chunk, max_length=16384, truncation=True, padding="max_length")
-            labels = tokenizer(summary_sentence, max_length=16384, truncation=True, padding="max_length")
+            labels = tokenizer(summary_sentence, max_length=2048, truncation=True, padding="max_length")
             inputs['labels'] = labels['input_ids']
             all_inputs.append(inputs)
     
@@ -59,7 +59,8 @@ def objective(trial):
     # Suggest hyperparameters
     learning_rate = trial.suggest_float("learning_rate", 1e-5, 5e-5, log=True)
     num_train_epochs = trial.suggest_int("num_train_epochs", 1, 3)
-    per_device_train_batch_size = trial.suggest_categorical("per_device_train_batch_size", [4, 8, 16])
+    per_device_train_batch_size = trial.suggest_categorical("per_device_train_batch_size", [1, 2, 4])
+    gradient_accumulation_steps = trial.suggest_int("gradient_accumulation_steps", 1, 4)
     
     # Define training arguments
     training_args = Seq2SeqTrainingArguments(
@@ -74,6 +75,7 @@ def objective(trial):
         logging_dir='./logs',
         predict_with_generate=True,
         fp16=True,
+        gradient_accumulation_steps=gradient_accumulation_steps,
     )
     
     # Initialize Seq2SeqTrainer
