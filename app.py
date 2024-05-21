@@ -118,7 +118,7 @@ val_dataset = val_dataset.map(preprocess_data, batched=True, remove_columns=["de
 
 logger = logging.getLogger(__name__)
 logging.info(f"Train dataset: {train_dataset[0]}")
-logging.info(f"Validation dataset: {val_dataset[0]}
+logging.info(f"Validation dataset: {val_dataset[0]}")
 
 def test_dataset():
     return "Hello, world!"
