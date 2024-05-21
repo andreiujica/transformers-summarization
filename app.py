@@ -6,6 +6,7 @@ from datasets import load_dataset
 from src.finetune import ensure_equal_chunks
 from evaluate import load
 from src.summarize import load_model_and_tokenizer
+import logging
 
 
 model, tokenizer = load_model_and_tokenizer("allenai/led-base-16384")
@@ -115,17 +116,18 @@ val_dataset = val_dataset.map(preprocess_data, batched=True, remove_columns=["de
 #     best_params = run_optuna(n_trials)
 #     return best_params
 
-def test_dataset(no_of_samples):
-    return {
-        "train": train_dataset[0],
-        "val": val_dataset[0]
-    }
+logger = logging.getLogger(__name__)
+logging.info(f"Train dataset: {train_dataset[0]}")
+logging.info(f"Validation dataset: {val_dataset[0]}
+
+def test_dataset():
+    return "Hello, world!"
 
 
 iface = gr.Interface(
     fn=test_dataset,
-    inputs=gr.Slider(minimum=1, maximum=50, step=1, value=20, label="Number of Trials"),
-    outputs="json",
+    # inputs=gr.Slider(minimum=1, maximum=50, step=1, value=20, label="Number of Trials"),
+    outputs="text",
     title="Optuna Hyperparameter Optimization",
     description="Fine-tune LED on BigPatent dataset with Optuna for hyperparameter optimization."
 )
