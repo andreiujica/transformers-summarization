@@ -11,8 +11,8 @@ model, tokenizer = load_model_and_tokenizer("allenai/led-base-16384")
 data_collator = DataCollatorForSeq2Seq(tokenizer, model=model)
 dataset = load_dataset('big_patent', 'g', trust_remote_code=True)
 
-train_dataset = dataset['train'].select(range(100))  # Use a subset for demonstration
-val_dataset = dataset['validation'].select(range(20))
+train_dataset = dataset['train'].select(range(100))
+val_dataset = dataset['validation'].select(range(100))
 
 def preprocess_data(examples):
     descriptions = examples['description']
