@@ -1,10 +1,24 @@
 import gradio as gr
 import optuna
+import torch
 from transformers import DataCollatorForSeq2Seq, Seq2SeqTrainingArguments, Seq2SeqTrainer
 from datasets import load_dataset
 from src.finetune import ensure_equal_chunks
 from evaluate import load
 from src.summarize import load_model_and_tokenizer
+import torch.distributed as dist
+
+torch.autograd.set_detect_anomaly(True)
+
+def setup_distributed():
+    dist.init_process_group(backend="nccl")
+
+def cleanup_distributed():
+    dist.destroy_process_group()
+
+# Initialize distributed training if multiple GPUs are available
+if torch.cuda.device_count() > 1:
+    setup_distributed()
 
 
 model, tokenizer = load_model_and_tokenizer("allenai/led-base-16384")
@@ -76,6 +90,7 @@ def objective(trial):
         predict_with_generate=True,
         fp16=True,
         gradient_accumulation_steps=gradient_accumulation_steps,
+        ddp_find_unused_parameters=False,
     )
     
     # Initialize Seq2SeqTrainer
@@ -90,6 +105,7 @@ def objective(trial):
     )
     
     # Train and evaluate
+    torch.cuda.empty_cache()
     trainer.train()
     eval_results = trainer.evaluate()
     
@@ -123,3 +139,5 @@ iface = gr.Interface(
 
 if __name__ == "__main__":
     iface.launch()
+    if torch.cuda.device_count() > 1:
+        cleanup_distributed()
