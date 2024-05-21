@@ -7,6 +7,7 @@ from src.finetune import ensure_equal_chunks
 from evaluate import load
 from src.summarize import load_model_and_tokenizer
 import logging
+import numpy as np
 
 
 model, tokenizer = load_model_and_tokenizer("allenai/led-base-16384")
@@ -38,23 +39,20 @@ def preprocess_data(examples):
 train_dataset = train_dataset.map(preprocess_data, batched=True, remove_columns=["description", "abstract"])
 val_dataset = val_dataset.map(preprocess_data, batched=True, remove_columns=["description", "abstract"])
 
-# metric = load("rouge")
+rouge = load("rouge")
 
-# def compute_metrics(pred):
-#     labels_ids = pred.label_ids
-#     pred_ids = pred.predictions.argmax(-1)
-    
-#     pred_str = tokenizer.batch_decode(pred_ids, skip_special_tokens=True)
-#     labels_ids[labels_ids == -100] = tokenizer.pad_token_id
-#     label_str = tokenizer.batch_decode(labels_ids, skip_special_tokens=True)
-    
-#     rouge_scores = metric.compute(predictions=pred_str, references=label_str)
-    
-#     return {
-#         "rouge1": rouge_scores["rouge1"],
-#         "rouge2": rouge_scores["rouge2"],
-#         "rougeL": rouge_scores["rougeL"],
-#     }
+def compute_metrics(eval_pred):
+    predictions, labels = eval_pred
+    decoded_preds = tokenizer.batch_decode(predictions, skip_special_tokens=True)
+    labels = np.where(labels != -100, labels, tokenizer.pad_token_id)
+    decoded_labels = tokenizer.batch_decode(labels, skip_special_tokens=True)
+
+    result = rouge.compute(predictions=decoded_preds, references=decoded_labels, use_stemmer=True)
+
+    prediction_lens = [np.count_nonzero(pred != tokenizer.pad_token_id) for pred in predictions]
+    result["gen_len"] = np.mean(prediction_lens)
+
+    return {k: round(v, 4) for k, v in result.items()}
 
 
 # def objective(trial):
@@ -116,20 +114,47 @@ val_dataset = val_dataset.map(preprocess_data, batched=True, remove_columns=["de
 #     best_params = run_optuna(n_trials)
 #     return best_params
 
-logger = logging.getLogger(__name__)
-logging.info(f"Train dataset: {train_dataset[0]}")
-logging.info(f"Validation dataset: {val_dataset[0]}")
+import matplotlib.pyplot as plt
 
-def test_dataset(no_of_trials):
-    return "Hello, world!"
+def compute_token_length_distribution(no_of_samples):
+    
+    # Compute the lengths of tokenized descriptions and summaries
+    desc_lengths = [len(tokenizer.tokenize(item['description'])) for item in dataset['validation']]
+    summary_lengths = [len(tokenizer.tokenize(item['abstract'])) for item in dataset['validation']]
+    
+    # Plot the distribution of description lengths
+    plt.figure(figsize=(14, 6))
 
+    plt.subplot(1, 2, 1)
+    plt.hist(desc_lengths, bins=30, edgecolor='black')
+    plt.title('Distribution of Tokenized Description Lengths')
+    plt.xlabel('Length')
+    plt.ylabel('Frequency')
+
+    # Plot the distribution of summary lengths
+    plt.subplot(1, 2, 2)
+    plt.hist(summary_lengths, bins=30, edgecolor='black')
+    plt.title('Distribution of Tokenized Summary Lengths')
+    plt.xlabel('Length')
+    plt.ylabel('Frequency')
+
+    # Save the plot to a file
+    plot_filename = "length_distribution.png"
+    plt.savefig(plot_filename)
+    plt.close()
+    
+    return plot_filename
+
+# Define the Gradio interface
+def gradio_interface(split):
+    return compute_token_length_distribution(split)
 
 iface = gr.Interface(
-    fn=test_dataset,
-    inputs=gr.Slider(minimum=1, maximum=50, step=1, value=20, label="Number of Trials"),
-    outputs="text",
-    title="Optuna Hyperparameter Optimization",
-    description="Fine-tune LED on BigPatent dataset with Optuna for hyperparameter optimization."
+    fn=gradio_interface,
+    inputs=gr.inputs.Textbox(lines=1, placeholder="Enter dataset split (train/test/validation)", default="train"),
+    outputs=gr.outputs.Image(type="file", label="Length Distribution"),
+    title="Token Length Distribution for BigPatent Descriptions and Summaries",
+    description="Enter the split (train/test/validation) of the BigPatent dataset to see the distribution of tokenized description and summary lengths."
 )
 
 if __name__ == "__main__":
