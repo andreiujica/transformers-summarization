@@ -120,13 +120,13 @@ logger = logging.getLogger(__name__)
 logging.info(f"Train dataset: {train_dataset[0]}")
 logging.info(f"Validation dataset: {val_dataset[0]}")
 
-def test_dataset():
+def test_dataset(no_of_trials):
     return "Hello, world!"
 
 
 iface = gr.Interface(
     fn=test_dataset,
-    # inputs=gr.Slider(minimum=1, maximum=50, step=1, value=20, label="Number of Trials"),
+    inputs=gr.Slider(minimum=1, maximum=50, step=1, value=20, label="Number of Trials"),
     outputs="text",
     title="Optuna Hyperparameter Optimization",
     description="Fine-tune LED on BigPatent dataset with Optuna for hyperparameter optimization."
