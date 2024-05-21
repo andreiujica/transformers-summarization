@@ -23,7 +23,8 @@ def ensure_equal_chunks(document, summary, default_chunks=5):
     
     if num_sentences == 1:
         num_sentences = default_chunks
+        summary_sentences = [summary_sentences[0]] * num_sentences
 
     document_chunks = create_chunks(document_sentences, num_sentences)
-    
+
     return document_chunks, summary_sentences
