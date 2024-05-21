@@ -114,6 +114,17 @@ def compute_metrics(eval_pred):
 #     best_params = run_optuna(n_trials)
 #     return best_params
 
+"""
+TODO:
+1. Find length distribution so that you know how much to pad the shit
+2. Look into how accelerate and multiple gpu training works
+3. Do optuna in order to find the parameters
+4. Fine-tune
+5. Run inference to check if it works
+6. Run rouge on that inference to see what's up
+7. push to hub
+"""
+
 import matplotlib.pyplot as plt
 
 def compute_token_length_distribution(no_of_samples):
@@ -151,8 +162,8 @@ def gradio_interface(split):
 
 iface = gr.Interface(
     fn=gradio_interface,
-    inputs=gr.inputs.Textbox(lines=1, placeholder="Enter dataset split (train/test/validation)", default="train"),
-    outputs=gr.outputs.Image(type="file", label="Length Distribution"),
+    inputs=gr.Textbox(lines=1, placeholder="Enter dataset split (train/test/validation)", default="train"),
+    outputs=gr.Image(type="file", label="Length Distribution"),
     title="Token Length Distribution for BigPatent Descriptions and Summaries",
     description="Enter the split (train/test/validation) of the BigPatent dataset to see the distribution of tokenized description and summary lengths."
 )
