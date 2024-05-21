@@ -117,8 +117,8 @@ val_dataset = val_dataset.map(preprocess_data, batched=True, remove_columns=["de
 
 def test_dataset(no_of_samples):
     return {
-        train_dataset[:no_of_samples],
-        val_dataset[:no_of_samples]
+        "train": train_dataset[:no_of_samples],
+        "val": val_dataset[:no_of_samples]
     }
 
 
