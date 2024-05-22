@@ -1,7 +1,7 @@
 import gradio as gr
 import optuna
 import torch
-from transformers import DataCollatorForSeq2Seq, Seq2SeqTrainingArguments, Seq2SeqTrainer, AutoModelForSeq2SeqLM
+from transformers import DataCollatorForSeq2Seq, Seq2SeqTrainingArguments, Seq2SeqTrainer, AutoModelForSeq2SeqLM, EarlyStoppingCallback
 from datasets import load_dataset
 from src.finetune import ensure_equal_chunks
 from evaluate import load
@@ -62,7 +62,7 @@ def compute_metrics(eval_pred):
 def hp_space(trial):
     return {
         "learning_rate": trial.suggest_float("learning_rate", 1e-5, 5e-5, log=True),
-        "num_train_epochs": trial.suggest_int("num_train_epochs", 1, 3),
+        "num_train_epochs": trial.suggest_int("num_train_epochs", 3, 6),
     }
 
 training_args = Seq2SeqTrainingArguments(
@@ -72,9 +72,11 @@ training_args = Seq2SeqTrainingArguments(
     logging_dir='./logs',
     predict_with_generate=True,
     fp16=True,
-    per_device_train_batch_size=2,
-    gradient_accumulation_steps=4,
+    per_device_train_batch_size=4,
+    gradient_accumulation_steps=1,
 )
+
+early_stopping = EarlyStoppingCallback(early_stopping_patience=1)
 
 # Initialize Trainer
 trainer = Seq2SeqTrainer(
@@ -84,7 +86,8 @@ trainer = Seq2SeqTrainer(
     eval_dataset=val_dataset,
     tokenizer=tokenizer,
     data_collator=data_collator,
-    compute_metrics=compute_metrics
+    compute_metrics=compute_metrics,
+    callbacks=[early_stopping]
 )
 
 def gradio_interface():
