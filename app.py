@@ -21,8 +21,8 @@ def model_init(trial=None):
 data_collator = DataCollatorForSeq2Seq(tokenizer, model=model_init())
 dataset = load_dataset('big_patent', 'g', trust_remote_code=True)
 
-train_dataset = dataset['train'].select(range(100))
-val_dataset = dataset['validation'].select(range(20))
+train_dataset = dataset['train'].select(range(9000))
+val_dataset = dataset['validation'].select(range(1000))
 
 def preprocess_data(examples):
     descriptions = examples['description']
@@ -109,8 +109,8 @@ TODO:
 1. Find length distribution so that you know how much to pad the shit  --DONE
 2. Look into how accelerate and multiple gpu training works --DONE
 3. Do optuna in order to find the parameters --DONE
-4. Fine-tune small
-5. Run inference to check if it works
+4. Fine-tune small --DONE
+5. Run inference to check if it works --DONE
 6. Fine-tune large
 6. Run rouge on that inference to see what's up
 7. push to hub
