@@ -63,7 +63,6 @@ def hp_space(trial):
     return {
         "learning_rate": trial.suggest_float("learning_rate", 1e-5, 5e-5, log=True),
         "num_train_epochs": trial.suggest_int("num_train_epochs", 1, 3),
-        "per_device_train_batch_size": trial.suggest_categorical("per_device_train_batch_size", [1]),
     }
 
 training_args = Seq2SeqTrainingArguments(
@@ -73,7 +72,8 @@ training_args = Seq2SeqTrainingArguments(
     logging_dir='./logs',
     predict_with_generate=True,
     fp16=True,
-    gradient_accumulation_steps=2,
+    per_device_train_batch_size=2,
+    gradient_accumulation_steps=4,
 )
 
 # Initialize Trainer
@@ -93,7 +93,7 @@ def gradio_interface():
         backend="optuna",
         n_trials=10,
         hp_space=hp_space,
-        compute_objective=lambda metrics: metrics["rougeLsum"],
+        compute_objective=lambda metrics: metrics["eval_rougeLsum"],
     )
 
     return best_trial.hyperparameters
