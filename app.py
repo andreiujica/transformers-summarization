@@ -1,12 +1,9 @@
 import gradio as gr
-import optuna
-import torch
-from transformers import DataCollatorForSeq2Seq, Seq2SeqTrainingArguments, Seq2SeqTrainer, AutoModelForSeq2SeqLM, EarlyStoppingCallback
+from transformers import DataCollatorForSeq2Seq, Seq2SeqTrainingArguments, Seq2SeqTrainer, AutoModelForSeq2SeqLM
 from datasets import load_dataset
 from src.finetune import ensure_equal_chunks
 from evaluate import load
 from src.summarize import load_model_and_tokenizer
-import logging
 import numpy as np
 
 MODEL_NAME = "allenai/led-base-16384"
@@ -74,10 +71,8 @@ training_args = Seq2SeqTrainingArguments(
     fp16=True,
     per_device_train_batch_size=4,
     gradient_accumulation_steps=1,
-    load_best_model_at_end=True,
 )
 
-early_stopping = EarlyStoppingCallback(early_stopping_patience=1)
 
 # Initialize Trainer
 trainer = Seq2SeqTrainer(
@@ -87,8 +82,7 @@ trainer = Seq2SeqTrainer(
     eval_dataset=val_dataset,
     tokenizer=tokenizer,
     data_collator=data_collator,
-    compute_metrics=compute_metrics,
-    callbacks=[early_stopping]
+    compute_metrics=compute_metrics
 )
 
 def gradio_interface():
