@@ -69,8 +69,8 @@ training_args = Seq2SeqTrainingArguments(
     logging_dir='./logs',
     predict_with_generate=True,
     fp16=True,
-    per_device_train_batch_size=4,
-    gradient_accumulation_steps=1,
+    per_device_train_batch_size=2,
+    gradient_accumulation_steps=2,
 )
 
 
