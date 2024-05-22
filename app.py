@@ -74,6 +74,7 @@ training_args = Seq2SeqTrainingArguments(
     fp16=True,
     per_device_train_batch_size=4,
     gradient_accumulation_steps=1,
+    load_best_model_at_end=True,
 )
 
 early_stopping = EarlyStoppingCallback(early_stopping_patience=1)
