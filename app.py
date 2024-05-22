@@ -21,8 +21,8 @@ def model_init(trial=None):
 data_collator = DataCollatorForSeq2Seq(tokenizer, model=model_init())
 dataset = load_dataset('big_patent', 'g', trust_remote_code=True)
 
-train_dataset = dataset['train'].select(range(9000))
-val_dataset = dataset['validation'].select(range(1000))
+train_dataset = dataset['train'].select(range(100))
+val_dataset = dataset['validation'].select(range(20))
 
 def preprocess_data(examples):
     descriptions = examples['description']
@@ -83,7 +83,8 @@ training_args = Seq2SeqTrainingArguments(
     num_train_epochs=NUM_TRAIN_EPOCHS,
     push_to_hub=True,
     hub_model_id="andreiujica/led-base-big-patent",
-    hub_token=os.getenv("HF_TOKEN")
+    hub_token=os.getenv("HF_TOKEN"),
+    generation_max_length=128,
 )
 
 trainer = Seq2SeqTrainer(
