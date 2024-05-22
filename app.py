@@ -21,8 +21,8 @@ def model_init(trial=None):
 data_collator = DataCollatorForSeq2Seq(tokenizer, model=model_init())
 dataset = load_dataset('big_patent', 'g', trust_remote_code=True)
 
-train_dataset = dataset['train'].select(range(100))
-val_dataset = dataset['validation'].select(range(20))
+train_dataset = dataset['train'].select(range(9000))
+val_dataset = dataset['validation'].select(range(1000))
 
 def preprocess_data(examples):
     descriptions = examples['description']
