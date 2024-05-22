@@ -1,7 +1,7 @@
 import gradio as gr
 import optuna
 import torch
-from transformers import DataCollatorForSeq2Seq, Seq2SeqTrainingArguments, Seq2SeqTrainer
+from transformers import DataCollatorForSeq2Seq, Seq2SeqTrainingArguments, Seq2SeqTrainer, AutoModelForSeq2SeqLM
 from datasets import load_dataset
 from src.finetune import ensure_equal_chunks
 from evaluate import load
@@ -9,9 +9,14 @@ from src.summarize import load_model_and_tokenizer
 import logging
 import numpy as np
 
+MODEL_NAME = "allenai/led-base-16384"
+_, tokenizer = load_model_and_tokenizer(MODEL_NAME)
 
-model, tokenizer = load_model_and_tokenizer("allenai/led-base-16384")
-data_collator = DataCollatorForSeq2Seq(tokenizer, model=model)
+def model_init(trial=None):
+    return AutoModelForSeq2SeqLM.from_pretrained(MODEL_NAME).to("cuda")
+
+
+data_collator = DataCollatorForSeq2Seq(tokenizer, model=model_init())
 dataset = load_dataset('big_patent', 'g', trust_remote_code=True)
 
 train_dataset = dataset['train'].select(range(100))
@@ -72,7 +77,7 @@ training_args = Seq2SeqTrainingArguments(
 
 # Initialize Trainer
 trainer = Seq2SeqTrainer(
-    model=model,
+    model_init=model_init,
     args=training_args,
     train_dataset=train_dataset,
     eval_dataset=val_dataset,
