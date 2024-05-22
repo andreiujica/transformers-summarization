@@ -5,6 +5,12 @@ from src.finetune import ensure_equal_chunks
 from evaluate import load
 from src.summarize import load_model_and_tokenizer
 import numpy as np
+import logging
+import os
+
+
+logger = logging.getLogger(__name__)
+HF_TOKEN = os.getenv("HF_TOKEN")
 
 MODEL_NAME = "allenai/led-base-16384"
 _, tokenizer = load_model_and_tokenizer(MODEL_NAME)
@@ -12,12 +18,11 @@ _, tokenizer = load_model_and_tokenizer(MODEL_NAME)
 def model_init(trial=None):
     return AutoModelForSeq2SeqLM.from_pretrained(MODEL_NAME).to("cuda")
 
-
 data_collator = DataCollatorForSeq2Seq(tokenizer, model=model_init())
 dataset = load_dataset('big_patent', 'g', trust_remote_code=True)
 
 train_dataset = dataset['train'].select(range(100))
-val_dataset = dataset['validation'].select(range(100))
+val_dataset = dataset['validation'].select(range(20))
 
 def preprocess_data(examples):
     descriptions = examples['description']
@@ -62,6 +67,9 @@ def hp_space(trial):
         "num_train_epochs": trial.suggest_int("num_train_epochs", 3, 6),
     }
 
+LEARNING_RATE = 4.892476e-5
+NUM_TRAIN_EPOCHS = 3
+
 training_args = Seq2SeqTrainingArguments(
     output_dir="./results",
     evaluation_strategy="epoch",
@@ -71,10 +79,13 @@ training_args = Seq2SeqTrainingArguments(
     fp16=True,
     per_device_train_batch_size=2,
     gradient_accumulation_steps=2,
+    learning_rate=LEARNING_RATE,
+    num_train_epochs=NUM_TRAIN_EPOCHS,
+    push_to_hub=True,
+    push_to_hub_model_id="andreiujica/led-base-big-patent",
+    push_to_hub_token=os.getenv("HF_TOKEN")
 )
 
-
-# Initialize Trainer
 trainer = Seq2SeqTrainer(
     model_init=model_init,
     args=training_args,
@@ -86,23 +97,21 @@ trainer = Seq2SeqTrainer(
 )
 
 def gradio_interface():
-    best_trial = trainer.hyperparameter_search(
-        direction="maximize",
-        backend="optuna",
-        n_trials=10,
-        hp_space=hp_space,
-        compute_objective=lambda metrics: metrics["eval_rougeLsum"],
-    )
+    trainer.train()
+    trainer.push_to_hub()
 
-    return best_trial.hyperparameters
+    logger.info(f"Success! Your model finished training, here are the evaluation metrics: {trainer.evaluate()}")
+
+    return trainer.evaluate()
 
 """
 TODO:
 1. Find length distribution so that you know how much to pad the shit  --DONE
 2. Look into how accelerate and multiple gpu training works --DONE
-3. Do optuna in order to find the parameters
-4. Fine-tune
+3. Do optuna in order to find the parameters --DONE
+4. Fine-tune small
 5. Run inference to check if it works
+6. Fine-tune large
 6. Run rouge on that inference to see what's up
 7. push to hub
 """
@@ -110,9 +119,9 @@ TODO:
 iface = gr.Interface(
     fn=gradio_interface,
     inputs=None,
-    outputs=gr.JSON(label="Best Hyperparameters"),
-    title="Hyperparameter Tuning for BigPatent Summarization",
-    description="Perform hyperparameter tuning using Optuna and Hugging Face.",
+    outputs=gr.JSON(label="Finetuning Evaluation Results"),
+    title="Finetuning for BigPatent Summarization",
+    description="Perform Finetuning using Hugging Face Transformers.",
 )
 
 if __name__ == "__main__":
