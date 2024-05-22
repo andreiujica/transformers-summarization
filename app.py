@@ -82,8 +82,8 @@ training_args = Seq2SeqTrainingArguments(
     learning_rate=LEARNING_RATE,
     num_train_epochs=NUM_TRAIN_EPOCHS,
     push_to_hub=True,
-    push_to_hub_model_id="andreiujica/led-base-big-patent",
-    push_to_hub_token=os.getenv("HF_TOKEN")
+    hub_model_id="led-base-big-patent",
+    hub_token=os.getenv("HF_TOKEN")
 )
 
 trainer = Seq2SeqTrainer(
