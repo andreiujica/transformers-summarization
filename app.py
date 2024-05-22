@@ -162,8 +162,8 @@ def gradio_interface(split):
 
 iface = gr.Interface(
     fn=gradio_interface,
-    inputs=gr.Textbox(lines=1, placeholder="Enter dataset split (train/test/validation)", default="train"),
-    outputs=gr.Image(type="file", label="Length Distribution"),
+    inputs=gr.Textbox(lines=1, placeholder="Enter dataset split (train/test/validation)", value="train"),
+    outputs=gr.Image(type="filepath", label="Length Distribution"),
     title="Token Length Distribution for BigPatent Descriptions and Summaries",
     description="Enter the split (train/test/validation) of the BigPatent dataset to see the distribution of tokenized description and summary lengths."
 )
