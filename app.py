@@ -63,7 +63,7 @@ def hp_space(trial):
     return {
         "learning_rate": trial.suggest_float("learning_rate", 1e-5, 5e-5, log=True),
         "num_train_epochs": trial.suggest_int("num_train_epochs", 1, 3),
-        "per_device_train_batch_size": trial.suggest_categorical("per_device_train_batch_size", [8, 16]),
+        "per_device_train_batch_size": trial.suggest_categorical("per_device_train_batch_size", [1]),
     }
 
 training_args = Seq2SeqTrainingArguments(
