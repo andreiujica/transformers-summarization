@@ -133,21 +133,37 @@ def compute_token_length_distribution(no_of_samples):
     desc_lengths = [len(tokenizer.tokenize(item['description'])) for item in dataset['validation']]
     summary_lengths = [len(tokenizer.tokenize(item['abstract'])) for item in dataset['validation']]
     
+    # Determine the number of bins using the Freedman-Diaconis rule for better distribution
+    def freedman_diaconis(data):
+        q25, q75 = np.percentile(data, [25, 75])
+        bin_width = 2 * (q75 - q25) * len(data) ** (-1/3)
+        bins = int((max(data) - min(data)) / bin_width)
+        return bins
+    
+    desc_bins = freedman_diaconis(desc_lengths)
+    summary_bins = freedman_diaconis(summary_lengths)
+
     # Plot the distribution of description lengths
     plt.figure(figsize=(14, 6))
 
     plt.subplot(1, 2, 1)
-    plt.hist(desc_lengths, bins=30, edgecolor='black')
+    plt.hist(desc_lengths, bins=desc_bins, edgecolor='black', log=True)
+    plt.axvline(np.mean(desc_lengths), color='r', linestyle='dashed', linewidth=1)
+    plt.axvline(np.median(desc_lengths), color='b', linestyle='dashed', linewidth=1)
     plt.title('Distribution of Tokenized Description Lengths')
     plt.xlabel('Length')
     plt.ylabel('Frequency')
+    plt.legend({'Mean':np.mean(desc_lengths),'Median':np.median(desc_lengths)})
 
     # Plot the distribution of summary lengths
     plt.subplot(1, 2, 2)
-    plt.hist(summary_lengths, bins=30, edgecolor='black')
+    plt.hist(summary_lengths, bins=summary_bins, edgecolor='black', log=True)
+    plt.axvline(np.mean(summary_lengths), color='r', linestyle='dashed', linewidth=1)
+    plt.axvline(np.median(summary_lengths), color='b', linestyle='dashed', linewidth=1)
     plt.title('Distribution of Tokenized Summary Lengths')
     plt.xlabel('Length')
     plt.ylabel('Frequency')
+    plt.legend({'Mean':np.mean(summary_lengths),'Median':np.median(summary_lengths)})
 
     # Save the plot to a file
     plot_filename = "length_distribution.png"
