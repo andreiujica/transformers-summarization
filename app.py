@@ -5,7 +5,7 @@ from datasets import load_dataset
 MODEL_NAME = "andreiujica/led-base-big-patent"
 summarizer = pipeline("summarization", model=MODEL_NAME, min_length=20, max_length=128)
 dataset = load_dataset("NortheasternUniversity/big_patent", "g", split="test", trust_remote_code=True, streaming=True)
-tokenizer_kwargs = {'padding':True, 'truncation':True, 'return_tensors':'pt'}
+tokenizer_kwargs = {'padding':True, 'truncation':True, 'max_length':16384, 'return_tensors':'pt'}
 
 
 examples = []
