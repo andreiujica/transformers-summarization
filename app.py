@@ -27,7 +27,6 @@ def load_example(example):
 iface = gr.Interface(
     fn=summarize_text, 
     inputs=[
-        gr.Dropdown(choices=["Example 1", "Example 2", "Example 3"], label="Select Example"),
         gr.Textbox(lines=5, label="Input Text", interactive=True)
     ],
     outputs=gr.Textbox(lines=5, label="Summary"),
@@ -46,7 +45,8 @@ dropdown_iface = gr.Interface(
     outputs=[
         gr.Textbox(lines=5, label="Input Text", interactive=True),
         gr.Textbox(lines=5, label="Reference", interactive=False)
-    ]
+    ],
+    description="Here are some examples of patent descriptions and their corresponding abstracts.",
 )
 
 if __name__ == "__main__":
