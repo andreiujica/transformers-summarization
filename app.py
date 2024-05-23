@@ -18,11 +18,6 @@ for i, example in enumerate(dataset):
 def summarize_text(text):
     return summarizer(text)[0]["summary_text"]
 
-def load_example(example):
-    example_index = int(example.split(" ")[1]) - 1
-    selected_example = examples[example_index]
-    return selected_example["description"], f"Abstract: {selected_example['abstract']}"
-
 # Create Gradio interface
 iface = gr.Interface(
     fn=summarize_text, 
@@ -33,22 +28,11 @@ iface = gr.Interface(
     title="Patent Summarizer",
     description="Summarize patents using LED trained on the BigPatent dataset.",
     examples=[
-        ["Example 1", examples[0]["description"]],
-        ["Example 2", examples[1]["description"]],
-        ["Example 3", examples[2]["description"]],
+        [examples[0]["description"]],
+        [examples[1]["description"]],
+        [examples[2]["description"]],
     ]
-)
-
-dropdown_iface = gr.Interface(
-    fn=load_example,
-    inputs=gr.Dropdown(choices=["Example 1", "Example 2", "Example 3"], label="Select Example"),
-    outputs=[
-        gr.Textbox(lines=5, label="Input Text", interactive=True),
-        gr.Textbox(lines=5, label="Reference", interactive=False)
-    ],
-    description="Here are some examples of patent descriptions and their corresponding abstracts.",
 )
 
 if __name__ == "__main__":
     iface.launch()
-    dropdown_iface.launch()
