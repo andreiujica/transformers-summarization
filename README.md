@@ -1,5 +1,3 @@
-# Summarization US Patents
-
 ---
 title: Summarization Us Patents
 emoji: 🐢
