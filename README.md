@@ -1,3 +1,5 @@
+# Summarization US Patents
+
 ---
 title: Summarization Us Patents
 emoji: 🐢
@@ -10,4 +12,4 @@ pinned: false
 license: mit
 ---
 
-Check out the configuration reference at https://huggingface.co/docs/hub/spaces-config-reference
+This repository has been imported from Hugging Face. Check out the configuration reference at https://huggingface.co/docs/hub/spaces-config-reference
